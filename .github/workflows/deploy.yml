@@ -1,0 +1,70 @@
+name: Deploy
+
+# On every push to main: fetch titles and thumbnails for newly saved links and
+# commit them back, then lint, test, build and publish to GitHub Pages.
+# Pull requests run the checks without publishing.
+# One-time setup: Settings → Pages → Build and deployment → Source: GitHub Actions.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write # to commit fetched link details
+  pages: write
+  id-token: write
+
+# Saving several links quickly queues runs instead of cancelling them, so
+# every link gets its details.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Fetch details for new links
+        if: github.ref == 'refs/heads/main'
+        run: |
+          node scripts/enrich-links.mjs
+          if git diff --quiet -- public/data/links.json; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Fetch details for saved links" -- public/data/links.json
+          # A link saved while this ran can make the push fail. The site is
+          # still built with the details, and the next run commits them.
+          if ! (git pull --rebase origin main && git push origin HEAD:main); then
+            git rebase --abort 2>/dev/null || true
+            echo "Couldn't push link details this time; the next run will."
+          fi
+
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - id: deployment
+        uses: actions/deploy-pages@v4
