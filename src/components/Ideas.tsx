@@ -1,13 +1,18 @@
 import { useState } from 'react'
-import { IDEA_CATEGORIES, IDEAS, type Idea, type IdeaCategory } from '../data/ideas'
+import { IDEA_CATEGORIES, type Idea, type IdeaCategory } from '../data/ideas'
 import { Sticker } from '../stickers/Sticker'
 
 const CARD_COLORS = ['var(--butter)', 'var(--pink)', 'var(--mint)', 'var(--sky)', 'var(--tomato)']
 const TILTS = [-4, 3, -2, 5, -5, 2]
 
-export function Ideas({ onOpen }: { onOpen: (idea: Idea) => void }) {
+// `ideas` is already filtered by preferences; `hidden` says what was left out.
+export function Ideas({ ideas, hidden, onOpen }: {
+  ideas: Idea[]
+  hidden: { count: number; labels: string[] }
+  onOpen: (idea: Idea) => void
+}) {
   const [filter, setFilter] = useState<IdeaCategory | 'all'>('all')
-  const shown = filter === 'all' ? IDEAS : IDEAS.filter((i) => i.category === filter)
+  const shown = filter === 'all' ? ideas : ideas.filter((i) => i.category === filter)
 
   return (
     <section className="section" id="ideas" aria-labelledby="ideas-h">
@@ -25,19 +30,22 @@ export function Ideas({ onOpen }: { onOpen: (idea: Idea) => void }) {
         </div>
       </header>
 
+      {hidden.count > 0 && (
+        <p className="hidden-note">
+          Hiding {hidden.count} {hidden.count === 1 ? 'idea' : 'ideas'} with {hidden.labels.join(', ').toLowerCase()}. <a href="#tastes">Your tastes</a>
+        </p>
+      )}
+
       <div className="idea-grid">
-        {shown.map((idea) => {
-          const n = IDEAS.indexOf(idea)
-          return (
-            <button key={idea.slug} type="button" className="idea-card" style={{ background: CARD_COLORS[n % CARD_COLORS.length] }} onClick={() => onOpen(idea)}>
-              <Sticker name={idea.sticker} palette={idea.palette} tilt={TILTS[n % TILTS.length]} />
-              <span className="idea-title">{idea.title}</span>
-              <span className="idea-stats">
-                <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.protein} g protein · {idea.time}
-              </span>
-            </button>
-          )
-        })}
+        {shown.map((idea, n) => (
+          <button key={idea.slug} type="button" className="idea-card" style={{ background: CARD_COLORS[n % CARD_COLORS.length] }} onClick={() => onOpen(idea)}>
+            <Sticker name={idea.sticker} palette={idea.palette} tilt={TILTS[n % TILTS.length]} />
+            <span className="idea-title">{idea.title}</span>
+            <span className="idea-stats">
+              <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.protein} g protein · {idea.time}
+            </span>
+          </button>
+        ))}
       </div>
     </section>
   )

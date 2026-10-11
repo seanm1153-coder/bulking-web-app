@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Boosters } from './components/Boosters'
 import { Hero } from './components/Hero'
 import { IdeaDialog } from './components/IdeaDialog'
@@ -6,10 +6,14 @@ import { Ideas } from './components/Ideas'
 import { Library } from './components/Library'
 import { LinkDialog } from './components/LinkDialog'
 import { SetupDialog } from './components/SetupDialog'
+import { Tastes } from './components/Tastes'
 import { VideoDialog } from './components/VideoDialog'
-import { IDEAS, type Idea } from './data/ideas'
+import { BOOSTERS, boosterText, IDEAS, ideaText, type Idea } from './data/ideas'
 import { findUrl, normalizeUrl, type Link } from './lib/links'
+import { avoidedIn } from './lib/preferences'
 import { useLinks } from './lib/useLinks'
+import { usePreferences } from './lib/usePreferences'
+import { useToken } from './lib/useRepoFile'
 
 const SHARE_PARAMS = ['add', 'url', 'text']
 
@@ -24,15 +28,30 @@ function sharedUrl(): string | null {
   return null
 }
 
-function randomIdea(except?: Idea): Idea {
-  const pool = IDEAS.filter((i) => i !== except)
-  return pool[Math.floor(Math.random() * pool.length)]
+function randomIdea(ideas: Idea[], except?: Idea): Idea | null {
+  const pool = ideas.length > 1 ? ideas.filter((i) => i !== except) : ideas
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null
 }
 
 type LinkForm = { url?: string; editing?: Link }
 
 export default function App() {
-  const api = useLinks()
+  const [token, setToken] = useToken()
+  const api = useLinks(token, setToken)
+  const prefs = usePreferences(token)
+
+  // Leave out anything that mentions a food on the Never list.
+  const { ideas, boosters, hidden } = useMemo(() => {
+    const ok = (text: string) => !prefs.avoid?.test(text)
+    const ideas = IDEAS.filter((i) => ok(ideaText(i)))
+    const left = IDEAS.filter((i) => !ideas.includes(i))
+    const labels = [...new Set(left.flatMap((i) => avoidedIn(ideaText(i), prefs.prefs).map((p) => p.label)))]
+    return { ideas, boosters: BOOSTERS.filter((b) => ok(boosterText(b))), hidden: { count: left.length, labels } }
+  }, [prefs.avoid, prefs.prefs])
+  const feedMe = (except?: Idea) => {
+    const next = randomIdea(ideas, except)
+    setIdea(next ? { idea: next, random: true } : null)
+  }
   const [idea, setIdea] = useState<{ idea: Idea; random: boolean } | null>(null)
   const [linkForm, setLinkForm] = useState<LinkForm | null>(() => {
     const url = sharedUrl()
@@ -100,6 +119,7 @@ export default function App() {
           <nav className="top-nav" aria-label="Sections">
             <a href="#ideas">Ideas</a>
             <a href="#boosters">Boosters</a>
+            <a href="#tastes">Tastes</a>
             <a href="#saved">Saved</a>
           </nav>
           <div className="top-actions">
@@ -110,9 +130,10 @@ export default function App() {
       </header>
 
       <main className="wrap" id="top">
-        <Hero onIdea={() => setIdea({ idea: randomIdea(), random: true })} onSave={() => setLinkForm({})} />
-        <Ideas onOpen={(i) => setIdea({ idea: i, random: false })} />
-        <Boosters />
+        <Hero onIdea={() => feedMe()} onSave={() => setLinkForm({})} />
+        <Ideas ideas={ideas} hidden={hidden} onOpen={(i) => setIdea({ idea: i, random: false })} />
+        <Boosters boosters={boosters} />
+        <Tastes prefs={prefs} token={token} setToken={setToken} />
         <Library
           api={api}
           onAdd={() => setLinkForm({})}
@@ -135,8 +156,9 @@ export default function App() {
         <IdeaDialog
           key={idea.idea.slug}
           idea={idea.idea}
+          boosters={boosters}
           onClose={() => setIdea(null)}
-          onAnother={idea.random ? () => setIdea({ idea: randomIdea(idea.idea), random: true }) : undefined}
+          onAnother={idea.random ? () => feedMe(idea.idea) : undefined}
         />
       )}
       {linkForm && <LinkDialog api={api} initialUrl={linkForm.url} editing={linkForm.editing} onClose={() => setLinkForm(null)} />}

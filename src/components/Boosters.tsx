@@ -1,7 +1,7 @@
-import { BOOSTERS } from '../data/ideas'
+import type { Booster } from '../data/ideas'
 import { Sticker } from '../stickers/Sticker'
 
-export function Boosters() {
+export function Boosters({ boosters }: { boosters: Booster[] }) {
   return (
     <section className="section boosters" id="boosters" aria-labelledby="boost-h">
       <header className="section-head">
@@ -11,7 +11,7 @@ export function Boosters() {
         </div>
       </header>
       <div className="boost-grid">
-        {BOOSTERS.map((b, i) => (
+        {boosters.map((b, i) => (
           <article key={b.id} className="boost-card">
             <Sticker name={b.sticker} palette={b.palette} tilt={i % 2 ? 6 : -6} />
             <p className="boost-kcal"><b>+{b.kcal}</b> kcal</p>

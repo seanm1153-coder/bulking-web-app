@@ -8,18 +8,17 @@ export const PALETTE = {
   plate: '#FFB4C6', plateWhite: '#FFFFFF',
   cake: '#E39A3B', cakeLight: '#F6B94E', syrup: '#8A3B12', butter: '#FFE45C',
   bun: '#F3A847', patty: '#7A4128', cheese: '#FFC72C', cheeseLight: '#FFDC6B', cheeseHole: '#E9A800', lettuce: '#5BC25A', seed: '#FFF6DE',
-  shake: '#FF6FA0', shakeLight: '#FFA6C4', whip: '#FFFFFF', cherry: '#E8384F', straw: '#FFD447',
+  shake: '#F2C98B', shakeLight: '#FFE2B0', whip: '#FFFFFF', topper: '#7A4128', straw: '#2B45E0',
   bowl: '#2B45E0', rice: '#FFFFFF', chicken: '#C7783A', beans: '#4A2C2A', corn: '#FFD447', avocado: '#7DBE5A',
   pasta: '#FFD447', sauce: '#D8402B', meatball: '#8A3B12', basil: '#5BC25A',
-  bread: '#E8B46A', pb: '#C9813E', banana: '#FFF0A8',
+  bread: '#E8B46A', pb: '#C9813E', honey: '#F2B02E',
   egg: '#FFFFFF', yolk: '#FFC21A', bacon: '#D45A3C',
   tortilla: '#F2D29B', filling: '#FFF3D6', foil: '#CFD7E0',
-  jar: '#DDF2FF', oats: '#EBD3A0', berry: '#6A4BD6', spoon: '#CFD7E0',
+  jar: '#DDF2FF', oats: '#EBD3A0', chip: '#5A3420', nut: '#C98A4B', spoon: '#CFD7E0',
   crust: '#E3973D', pepperoni: '#D8402B',
   lid: '#FF5A36', peanut: '#B8642B', milkBlue: '#2B45E0',
   avoSkin: '#3E7A2E', avoFlesh: '#CDE88E', avoPit: '#9A5B2E',
   oil: '#C8D85A', olive: '#5C7A2B',
-  peel: '#FFD447', peelLine: '#E0A800', stem: '#6B4A2E',
   butterTop: '#FFF0A0', butterSide: '#FFD95C', wrapper: '#FFFFFF',
   almond: '#C98A4B', cashew: '#F0D6A0', almondLine: '#9A5B2E',
 }
@@ -47,6 +46,11 @@ const e = (cx: number, cy: number, rx: number, ry: number, fill: Role, extra: At
 const p = (d: string, fill: Role, extra: Attrs = {}): Shape => ({ el: 'path', a: { d, ...extra }, fill })
 const line = (d: string, color: Role, w = 5, dash?: string, extra: Attrs = {}): Shape =>
   ({ el: 'path', a: { d, ...extra }, line: color, w, dash })
+
+const sprinkle = (x: number, y: number, angle: number, fill: Role): Shape =>
+  ({ el: 'rect', a: { x: x - 6, y: y - 2.5, width: 12, height: 5, rx: 2.5, transform: `rotate(${angle} ${x} ${y})` }, fill, flat: true })
+const salt = (x: number, y: number): Shape =>
+  ({ el: 'rect', a: { x: x - 3, y: y - 3, width: 6, height: 6, rx: 1, transform: `rotate(20 ${x} ${y})` }, fill: 'white', flat: true })
 
 const seeds = (y: number) => [
   e(70, y + 14, 5, 3, 'seed', { transform: `rotate(-30 70 ${y + 14})` }),
@@ -80,8 +84,8 @@ export const STICKERS = {
     p('M56 74 H144 L132 188 H68 Z', 'shake'),
     p('M59 100 H141 L139 118 H61 Z', 'shakeLight'),
     p('M50 80 Q40 54 68 54 Q72 30 98 36 Q120 22 134 46 Q162 46 152 80 Z', 'whip'),
-    line('M100 21 Q102 8 114 4', 'ink', 4),
-    c(100, 32, 12, 'cherry'),
+    c(100, 34, 12, 'topper'),
+    sprinkle(68, 62, 20, 'lid'), sprinkle(122, 50, -30, 'milkBlue'), sprinkle(136, 66, 60, 'lettuce'), sprinkle(84, 46, -50, 'butter'),
   ],
   bowl: [
     c(70, 94, 22, 'rice'), c(102, 80, 24, 'rice'), c(136, 88, 22, 'rice'),
@@ -104,8 +108,10 @@ export const STICKERS = {
   toast: [
     p('M34 178 V90 C10 86 14 32 62 32 H138 C186 32 190 86 166 90 V178 Z', 'bread'),
     p('M48 164 V96 C32 90 34 52 66 52 H134 C166 52 168 90 152 96 V164 Z', 'pb'),
-    c(78, 90, 15, 'banana'), c(118, 96, 15, 'banana'), c(94, 128, 15, 'banana'), c(132, 138, 13, 'banana'),
-    c(78, 90, 3, 'ink', {}, true), c(118, 96, 3, 'ink', {}, true), c(94, 128, 3, 'ink', {}, true), c(132, 138, 3, 'ink', {}, true),
+    line('M60 80 Q74 96 88 80 T116 80 T142 82', 'honey', 7),
+    line('M58 114 Q72 130 86 114 T114 114 T144 116', 'honey', 7),
+    line('M62 146 Q76 158 90 146 T118 146 T140 148', 'honey', 7),
+    salt(76, 98), salt(124, 98), salt(100, 132), salt(132, 132), salt(72, 132),
   ],
   sandwich: [
     r(36, 146, 128, 28, 13, 'bun'),
@@ -128,7 +134,7 @@ export const STICKERS = {
     r(46, 52, 108, 134, 24, 'jar'),
     r(54, 112, 92, 66, 16, 'oats'),
     r(54, 92, 92, 24, 6, 'whip'),
-    c(78, 86, 10, 'berry'), c(100, 82, 11, 'cherry'), c(124, 86, 10, 'berry'),
+    c(78, 86, 10, 'chip'), c(100, 82, 11, 'nut'), c(124, 86, 10, 'chip'),
     r(40, 42, 120, 18, 9, 'foil'),
     line('M64 128 V164', 'white', 6),
   ],
@@ -174,11 +180,6 @@ export const STICKERS = {
     r(76, 110, 48, 54, 6, 'cream'),
     e(98, 138, 10, 14, 'olive', { transform: 'rotate(-20 98 138)' }),
     p('M104 124 Q118 110 122 124 Q112 132 104 124 Z', 'lettuce'),
-  ],
-  banana: [
-    p('M30 60 C40 140 120 180 176 140 C182 132 174 126 166 130 C120 158 66 132 54 58 C52 46 30 46 30 60 Z', 'peel'),
-    line('M48 76 C60 126 106 152 150 142', 'peelLine', 4),
-    p('M28 54 L32 36 L46 38 L46 54 Z', 'stem'),
   ],
   butter: [
     p('M24 120 L120 70 L180 98 L84 148 Z', 'butterTop'),

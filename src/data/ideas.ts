@@ -12,7 +12,7 @@ export const IDEA_CATEGORIES: { id: IdeaCategory; label: string }[] = [
   { id: 'snacks', label: 'Snacks' },
 ]
 
-export type BoosterId = 'pb' | 'milk' | 'oil' | 'avocado' | 'cheese' | 'banana' | 'butter' | 'honey' | 'nuts' | 'cream'
+export type BoosterId = 'pb' | 'milk' | 'oil' | 'avocado' | 'cheese' | 'granola' | 'butter' | 'honey' | 'nuts' | 'cream'
 
 export interface Idea {
   slug: string
@@ -46,28 +46,32 @@ export const BOOSTERS: Booster[] = [
   { id: 'oil', name: 'Olive oil', amount: '1 tbsp', kcal: 120, protein: 0, sticker: 'oil', tip: 'Drizzle over rice, pasta, eggs and vegetables.' },
   { id: 'avocado', name: 'Avocado', amount: '1 whole', kcal: 240, protein: 3, sticker: 'avocado', tip: 'Slice into bowls, mash onto toast, add to burritos.' },
   { id: 'cheese', name: 'Cheddar', amount: '1 oz', kcal: 115, protein: 7, sticker: 'cheese', tip: 'Melt into eggs, pasta, burgers and wraps.' },
-  { id: 'banana', name: 'Banana', amount: '1 large', kcal: 120, protein: 1, sticker: 'banana', tip: 'Blend into shakes. Slice over oats and toast.' },
+  { id: 'granola', name: 'Granola', amount: '½ cup', kcal: 280, protein: 7, sticker: 'jar', palette: { whip: '#D9A55B', oats: '#C98A4B' }, tip: 'Choose a plain or nut granola. Pour it over yogurt or ice cream, or eat it with milk.' },
   { id: 'butter', name: 'Butter', amount: '1 tbsp', kcal: 100, protein: 0, sticker: 'butter', tip: 'Melt over rice, potatoes and vegetables. Fry eggs in plenty of it.' },
   { id: 'honey', name: 'Honey', amount: '1 tbsp', kcal: 64, protein: 0, sticker: 'pbJar', palette: { pb: '#F2B02E', lid: '#FFD447', peanut: '#FF8A3D' }, tip: 'Drizzle on oats, yogurt, toast and into shakes.' },
   { id: 'nuts', name: 'Mixed nuts', amount: '¼ cup', kcal: 210, protein: 6, sticker: 'nuts', tip: 'Keep a bag nearby. Chop over oats, salads and yogurt.' },
   { id: 'cream', name: 'Heavy cream', amount: '2 tbsp', kcal: 100, protein: 1, sticker: 'milk', palette: { milkBlue: '#FF6FA0' }, tip: 'Stir into eggs, sauces, coffee and mashed potatoes.' },
 ]
 
+// Everything a preference could match against.
+export const ideaText = (i: Idea) => [i.title, i.blurb, ...i.ingredients, ...i.steps].join('\n')
+export const boosterText = (b: Booster) => [b.name, b.amount, b.tip].join('\n')
+
 export const IDEAS: Idea[] = [
   {
     slug: 'protein-pancakes', title: 'Protein pancake stack', category: 'breakfast', sticker: 'pancakes',
-    kcal: 1000, protein: 47, time: '20 min',
+    kcal: 1110, protein: 48, time: '20 min',
     blurb: 'A diner-sized stack with whey in the batter, so it counts as a real meal.',
-    ingredients: ['¾ cup pancake mix', '1 scoop vanilla whey', '1 cup whole milk', '1 egg', '1 tbsp butter', '3 tbsp maple syrup', 'A handful of berries'],
-    steps: ['Whisk the mix, whey, milk and egg until just combined.', 'Cook four or five pancakes in butter over medium heat.', 'Stack them up and finish with more butter, syrup and berries.'],
-    boost: ['butter', 'pb', 'banana'],
+    ingredients: ['¾ cup pancake mix', '1 scoop vanilla whey', '1 cup whole milk', '1 egg', '1 tbsp butter', '3 tbsp maple syrup', '2 tbsp chocolate chips'],
+    steps: ['Whisk the mix, whey, milk and egg until just combined.', 'Cook four or five pancakes in butter over medium heat, scattering chocolate chips on each.', 'Stack them up and finish with more butter and syrup.'],
+    boost: ['butter', 'pb', 'nuts'],
   },
   {
     slug: 'overnight-oats', title: 'Loaded overnight oats', category: 'breakfast', sticker: 'jar',
-    kcal: 930, protein: 50, time: '5 min, then overnight',
+    kcal: 960, protein: 50, time: '5 min, then overnight',
     blurb: 'Make it before bed and breakfast is waiting in the fridge.',
-    ingredients: ['1 cup rolled oats', '1 cup whole milk', '1 scoop whey', '2 tbsp peanut butter', '1 banana, sliced', '1 tbsp honey'],
-    steps: ['Stir the oats, milk and whey together in a jar.', 'Swirl in the peanut butter and honey.', 'Refrigerate overnight. Top with banana in the morning.'],
+    ingredients: ['1 cup rolled oats', '1 cup whole milk', '1 scoop whey', '2 tbsp peanut butter', '1 tbsp honey', '2 tbsp chocolate chips'],
+    steps: ['Stir the oats, milk and whey together in a jar.', 'Swirl in the peanut butter and honey.', 'Refrigerate overnight. Top with chocolate chips in the morning.'],
     boost: ['nuts', 'honey', 'pb'],
   },
   {
@@ -79,11 +83,11 @@ export const IDEAS: Idea[] = [
     boost: ['avocado', 'cheese', 'cream'],
   },
   {
-    slug: 'pb-banana-toast', title: 'Peanut butter banana toast', category: 'breakfast', sticker: 'toast',
-    kcal: 770, protein: 24, time: '5 min',
-    blurb: 'Thick toast, a lot of peanut butter, banana and honey. Fast and hard to beat.',
-    ingredients: ['2 thick slices sourdough', '3 tbsp peanut butter', '1 banana', '1 tbsp honey', 'A pinch of salt'],
-    steps: ['Toast the bread well.', 'Spread on the peanut butter while it’s hot so it melts a little.', 'Top with sliced banana, honey and a pinch of salt.'],
+    slug: 'pb-honey-toast', title: 'Peanut butter honey toast', category: 'breakfast', sticker: 'toast',
+    kcal: 770, protein: 23, time: '5 min',
+    blurb: 'Thick buttered toast, a lot of peanut butter, honey and flaky salt. Fast and hard to beat.',
+    ingredients: ['2 thick slices sourdough', '1 tbsp butter', '3 tbsp peanut butter', '1 tbsp honey', 'Flaky salt'],
+    steps: ['Toast the bread well and butter it.', 'Spread on the peanut butter while it’s hot so it melts a little.', 'Drizzle with honey and finish with flaky salt.'],
     boost: ['honey', 'nuts', 'milk'],
   },
   {
@@ -145,45 +149,45 @@ export const IDEAS: Idea[] = [
     boost: ['oil', 'avocado', 'butter'],
   },
   {
-    slug: 'strawberry-shake', title: 'Thousand-calorie strawberry shake', category: 'shakes', sticker: 'shake',
-    kcal: 950, protein: 50, time: '5 min',
-    blurb: 'Tastes like a diner milkshake. Has a full meal’s worth of calories in it.',
-    ingredients: ['2 cups whole milk', '1 cup vanilla ice cream', '1 scoop whey', '½ cup rolled oats', '1 cup strawberries', '1 tbsp honey'],
+    slug: 'vanilla-malt-shake', title: 'Thousand-calorie vanilla malt', category: 'shakes', sticker: 'shake',
+    kcal: 980, protein: 52, time: '5 min',
+    blurb: 'Tastes like a diner malt. Has a full meal’s worth of calories in it.',
+    ingredients: ['2 cups whole milk', '1 cup vanilla ice cream', '1 scoop vanilla whey', '½ cup rolled oats', '2 tbsp malted milk powder', '1 tbsp honey'],
     steps: ['Blend the oats first so they turn to powder.', 'Add everything else and blend until smooth.', 'Pour into the biggest glass you own.'],
-    boost: ['pb', 'banana', 'cream'],
+    boost: ['pb', 'cream', 'nuts'],
   },
   {
     slug: 'chocolate-pb-shake', title: 'Chocolate peanut butter shake', category: 'shakes', sticker: 'shake',
-    palette: { shake: '#9A5A34', shakeLight: '#C08458', straw: '#FFB4C6', cherry: '#E8384F' },
-    kcal: 880, protein: 54, time: '5 min',
-    blurb: 'Banana, peanut butter and chocolate whey. Drink it with breakfast or after training.',
-    ingredients: ['2 cups whole milk', '1 scoop chocolate whey', '2 tbsp peanut butter', '1 banana', '½ cup rolled oats', '1 tbsp cocoa powder'],
+    palette: { shake: '#9A5A34', shakeLight: '#C08458', straw: '#FFB4C6', topper: '#FFF6DE' },
+    kcal: 910, protein: 55, time: '5 min',
+    blurb: 'Peanut butter, chocolate ice cream and chocolate whey. Drink it with breakfast or after training.',
+    ingredients: ['2 cups whole milk', '1 scoop chocolate whey', '2 tbsp peanut butter', '½ cup chocolate ice cream', '½ cup rolled oats', '1 tbsp cocoa powder'],
     steps: ['Blend the oats into a powder.', 'Add the rest and blend until thick.', 'Add ice if you like it colder and thicker.'],
     boost: ['pb', 'nuts', 'milk'],
   },
   {
     slug: 'snack-plate', title: 'Cheese and salami snack plate', category: 'snacks', sticker: 'cheese',
-    kcal: 710, protein: 30, time: '5 min',
+    kcal: 850, protein: 37, time: '5 min',
     blurb: 'Something to pick at while watching TV. It adds up quickly.',
-    ingredients: ['2 oz cheddar', '2 oz salami', '15 crackers', 'A handful of grapes'],
-    steps: ['Slice the cheese and salami.', 'Pile it on a board with the crackers and grapes.', 'Keep it within reach.'],
+    ingredients: ['2 oz cheddar', '2 oz salami', '15 crackers', '¼ cup salted almonds'],
+    steps: ['Slice the cheese and salami.', 'Pile it on a board with the crackers and almonds.', 'Keep it within reach.'],
     boost: ['nuts', 'avocado'],
   },
   {
-    slug: 'pbj-milk', title: 'PB&J and a glass of milk', category: 'snacks', sticker: 'milk',
-    kcal: 550, protein: 23, time: '3 min',
-    blurb: 'The easiest snack there is. Make two.',
-    ingredients: ['2 slices bread', '2 tbsp peanut butter', '1 tbsp jam', '1 cup whole milk'],
-    steps: ['Spread the peanut butter and jam.', 'Close it up and cut it diagonally.', 'Drink the milk with it.'],
-    boost: ['banana', 'pb', 'honey'],
+    slug: 'fluffernutter-milk', title: 'Fluffernutter and a glass of milk', category: 'snacks', sticker: 'milk',
+    kcal: 540, protein: 23, time: '3 min',
+    blurb: 'Peanut butter and marshmallow creme on soft bread. The easiest snack there is. Make two.',
+    ingredients: ['2 slices soft white bread', '2 tbsp peanut butter', '2 tbsp marshmallow creme', '1 cup whole milk'],
+    steps: ['Spread peanut butter on one slice and marshmallow creme on the other.', 'Close it up and cut it diagonally.', 'Drink the milk with it.'],
+    boost: ['pb', 'honey', 'milk'],
   },
   {
     slug: 'yogurt-parfait', title: 'Granola yogurt parfait', category: 'snacks', sticker: 'jar',
-    palette: { oats: '#D9A55B', cherry: '#E8384F', berry: '#2B45E0', spoon: '#FFB4C6' },
-    kcal: 700, protein: 30, time: '5 min',
-    blurb: 'Whole-milk Greek yogurt layered with granola, honey and berries.',
-    ingredients: ['1 cup whole-milk Greek yogurt', '½ cup granola', '2 tbsp chopped nuts', '1 tbsp honey', 'A handful of berries'],
-    steps: ['Spoon half the yogurt into a jar or bowl.', 'Add half the granola, berries and nuts, then repeat.', 'Finish with honey.'],
+    palette: { oats: '#D9A55B', spoon: '#FFB4C6' },
+    kcal: 730, protein: 31, time: '5 min',
+    blurb: 'Whole-milk Greek yogurt layered with crunchy granola, nuts, chocolate chips and honey.',
+    ingredients: ['1 cup whole-milk Greek yogurt', '½ cup plain or nut granola', '2 tbsp chopped nuts', '1 tbsp chocolate chips', '1 tbsp honey'],
+    steps: ['Spoon half the yogurt into a jar or bowl.', 'Add half the granola, nuts and chocolate chips, then repeat.', 'Finish with honey.'],
     boost: ['honey', 'nuts', 'pb'],
   },
 ]

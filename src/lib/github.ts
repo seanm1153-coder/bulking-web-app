@@ -1,12 +1,12 @@
-import { REPO } from '../config'
-import type { Link, LinksFile } from './links'
+import { REPO, type DataFile } from '../config'
 
-// Saved links are a JSON file in the repo. With an access key the site reads
-// the latest version straight from GitHub and commits changes to it; without
-// one it reads the copy published with the site.
+// The site's data (saved links, preferences) is JSON files in the repo. With
+// an access key the site reads the latest version straight from GitHub and
+// commits changes to it; without one it reads the copy published with the site.
 
 const TOKEN_KEY = 'surplus:github-token'
-const CONTENTS = `https://api.github.com/repos/${REPO.owner}/${REPO.name}/contents/${REPO.linksPath}`
+const REPO_API = `https://api.github.com/repos/${REPO.owner}/${REPO.name}`
+const contentsUrl = (file: DataFile) => `${REPO_API}/contents/${REPO.dataDir}/${file}`
 
 export function readToken(): string {
   try {
@@ -59,15 +59,22 @@ const headers = (token: string) => ({
   'X-GitHub-Api-Version': '2022-11-28',
 })
 
-function parse(text: string): LinksFile {
-  const data = JSON.parse(text) as Partial<LinksFile>
-  return { links: Array.isArray(data.links) ? data.links : [] }
+// Turns whatever is in a file (or undefined, for a missing file) into a
+// well-formed value, so a hand-edited or missing file never breaks the page.
+export type Parse<T> = (raw: unknown) => T
+
+const parseText = <T>(text: string, parse: Parse<T>): T => {
+  try {
+    return parse(JSON.parse(text))
+  } catch {
+    return parse(undefined)
+  }
 }
 
 // Checks a new key before keeping it: null means it can write to the repo.
 export async function verifyToken(token: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://api.github.com/repos/${REPO.owner}/${REPO.name}`, { headers: headers(token), cache: 'no-store' })
+    const res = await fetch(REPO_API, { headers: headers(token), cache: 'no-store' })
     if (!res.ok) return explain(res.status)
     const body = (await res.json()) as { permissions?: { push?: boolean } }
     return body.permissions?.push === false ? explain(403) : null
@@ -76,36 +83,35 @@ export async function verifyToken(token: string): Promise<string | null> {
   }
 }
 
-async function readFromGitHub(token: string): Promise<{ data: LinksFile; sha: string | null }> {
-  const res = await fetch(`${CONTENTS}?ref=${REPO.branch}`, { headers: headers(token), cache: 'no-store' })
+async function readFromGitHub<T>(token: string, file: DataFile, parse: Parse<T>): Promise<{ data: T; sha: string | null }> {
+  const res = await fetch(`${contentsUrl(file)}?ref=${REPO.branch}`, { headers: headers(token), cache: 'no-store' })
   if (res.status === 404) {
     // Either the file doesn't exist yet (fine) or the repo isn't reachable.
-    const repo = await fetch(`https://api.github.com/repos/${REPO.owner}/${REPO.name}`, { headers: headers(token), cache: 'no-store' })
+    const repo = await fetch(REPO_API, { headers: headers(token), cache: 'no-store' })
     if (!repo.ok) throw new GitHubError(repo.status, explain(repo.status))
-    return { data: { links: [] }, sha: null }
+    return { data: parse(undefined), sha: null }
   }
   if (!res.ok) throw new GitHubError(res.status, explain(res.status))
   const body = (await res.json()) as { content: string; sha: string }
-  return { data: parse(decodeBase64(body.content)), sha: body.sha }
+  return { data: parseText(decodeBase64(body.content), parse), sha: body.sha }
 }
 
-async function readPublished(): Promise<LinksFile> {
-  const res = await fetch(`${import.meta.env.BASE_URL}data/links.json`, { cache: 'no-store' })
-  if (!res.ok) return { links: [] }
-  return parse(await res.text())
+async function readPublished<T>(file: DataFile, parse: Parse<T>): Promise<T> {
+  const res = await fetch(`${import.meta.env.BASE_URL}data/${file}`, { cache: 'no-store' })
+  return res.ok ? parseText(await res.text(), parse) : parse(undefined)
 }
 
-export async function loadLinks(token: string): Promise<Link[]> {
-  return token ? (await readFromGitHub(token)).data.links : (await readPublished()).links
+export async function loadData<T>(token: string, file: DataFile, parse: Parse<T>): Promise<T> {
+  return token ? (await readFromGitHub(token, file, parse)).data : readPublished(file, parse)
 }
 
 // Read the latest file, apply the change, and commit it. If someone else
 // committed in between (GitHub answers 409), start over from their version.
-export async function commitLinks(token: string, change: (links: Link[]) => Link[], message: string): Promise<Link[]> {
+export async function commitData<T>(token: string, file: DataFile, parse: Parse<T>, change: (data: T) => T, message: string): Promise<T> {
   for (let attempt = 0; attempt < 3; attempt++) {
-    const { data, sha } = await readFromGitHub(token)
-    const next: LinksFile = { ...data, links: change(data.links) }
-    const res = await fetch(CONTENTS, {
+    const { data, sha } = await readFromGitHub(token, file, parse)
+    const next = change(data)
+    const res = await fetch(contentsUrl(file), {
       method: 'PUT',
       headers: { ...headers(token), 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -117,7 +123,7 @@ export async function commitLinks(token: string, change: (links: Link[]) => Link
     })
     if (res.status === 409 || res.status === 422) continue
     if (!res.ok) throw new GitHubError(res.status, explain(res.status))
-    return next.links
+    return next
   }
-  throw new GitHubError(409, 'The links file kept changing while saving. Try again.')
+  throw new GitHubError(409, `${file} kept changing while saving. Try again.`)
 }

@@ -1,14 +1,21 @@
 # Surplus
 
-A home base for eating more on purpose: big meal ideas, calorie boosters, and a library of food links saved from around the internet. Everything is drawn as die-cut stickers.
+A home base for eating more on purpose: big meal ideas, calorie boosters, your food preferences, and a library of food links saved from around the internet. Everything is drawn as die-cut stickers.
 
 ## What's on the page
 
 - **Ideas.** Sixteen big meals (breakfasts, meals, shakes, snacks), each with a recipe. Open one to tap boosters onto it and watch the total climb. **Feed me an idea** picks one at random.
 - **Boosters.** Ten easy add-ons (peanut butter, whole milk, olive oil, butter…) with what each one adds.
+- **Your tastes.** Foods you never want, foods you love, and notes. Ideas and boosters that mention anything on the Never list are hidden, and new recipes are written to follow all of it.
 - **Saved.** Videos, recipes and posts you've saved, with categories, notes, favorites and search. YouTube videos play in place; everything else opens in a new tab.
 
 Calorie and protein numbers are rough estimates.
+
+## Preferences
+
+[`public/data/preferences.json`](public/data/preferences.json) holds your tastes. Edit them from the **Your tastes** section (it saves the same way links do) or by hand. Each entry has a `kind` (`avoid`, `love` or `note`), a short `label`, and optionally a `detail` explaining it. `avoid` entries can list `terms`, the words that count as a match; otherwise the label is used. Matching is whole-word and catches plurals.
+
+`src/data/ideas.test.ts` checks every idea and booster against the Never list, so a recipe that breaks a preference fails the build.
 
 ## Saving links
 
@@ -57,8 +64,10 @@ The build uses relative paths (`base: './'`), so it works at any `https://<user>
 | `src/components/` | Hero, Ideas, Boosters, Library and the dialogs. |
 | `src/stickers/shapes.ts` | Every sticker as simple shapes with named color roles. |
 | `src/stickers/Sticker.tsx` | Draws a sticker: white die-cut border, then ink outlines. |
-| `src/data/ideas.ts` | The meal ideas and boosters. |
+| `src/data/ideas.ts` | The meal ideas and boosters. Tested against your preferences. |
 | `src/lib/links.ts` | Link types, categories, URL cleanup, YouTube and display helpers. |
-| `src/lib/github.ts` | Reading and committing `links.json` through the GitHub API. |
-| `src/lib/useLinks.ts` | The React hook that ties the library to GitHub. |
+| `src/lib/github.ts` | Reading and committing data files through the GitHub API. |
+| `src/lib/useRepoFile.ts` | Loads and commits one data file; shares the access key. |
+| `src/lib/useLinks.ts` | Saved links on top of `useRepoFile`. |
+| `src/lib/preferences.ts` | Preference types and Never-list matching. |
 | `scripts/enrich-links.mjs` | Fetches link titles and thumbnails in the deploy workflow. |

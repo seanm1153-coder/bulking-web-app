@@ -1,15 +1,20 @@
 import { useState } from 'react'
-import { BOOSTERS, IDEA_CATEGORIES, type BoosterId, type Idea } from '../data/ideas'
+import { IDEA_CATEGORIES, type Booster, type BoosterId, type Idea } from '../data/ideas'
 import { Sticker } from '../stickers/Sticker'
 import { Modal } from './Modal'
 
-export function IdeaDialog({ idea, onClose, onAnother }: { idea: Idea; onClose: () => void; onAnother?: () => void }) {
+export function IdeaDialog({ idea, boosters: all, onClose, onAnother }: {
+  idea: Idea
+  boosters: Booster[]
+  onClose: () => void
+  onAnother?: () => void
+}) {
   const [picked, setPicked] = useState<BoosterId[]>([])
   const category = IDEA_CATEGORIES.find((c) => c.id === idea.category)?.label
 
   // Suggested boosters first, then the rest.
-  const boosters = [...BOOSTERS.filter((b) => idea.boost.includes(b.id)), ...BOOSTERS.filter((b) => !idea.boost.includes(b.id))]
-  const added = BOOSTERS.filter((b) => picked.includes(b.id))
+  const boosters = [...all.filter((b) => idea.boost.includes(b.id)), ...all.filter((b) => !idea.boost.includes(b.id))]
+  const added = all.filter((b) => picked.includes(b.id))
   const kcal = idea.kcal + added.reduce((n, b) => n + b.kcal, 0)
   const protein = idea.protein + added.reduce((n, b) => n + b.protein, 0)
   const toggle = (id: BoosterId) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))

@@ -1,67 +1,34 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { commitLinks, loadLinks, readToken, writeToken } from './github'
-import { addLink, hostOf, removeLink, updateLink, type Link } from './links'
+import { useCallback, useEffect, useRef } from 'react'
+import { DATA_FILES } from '../config'
+import { addLink, hostOf, removeLink, updateLink, type Link, type LinksFile } from './links'
+import { useRepoFile } from './useRepoFile'
 
-export type LinksStatus = 'loading' | 'ready' | 'error'
+const parseLinks = (raw: unknown): LinksFile => {
+  const links = (raw as Partial<LinksFile> | undefined)?.links
+  return { links: Array.isArray(links) ? links : [] }
+}
 
-export function useLinks() {
-  const [token, setTokenState] = useState(readToken)
-  const [links, setLinks] = useState<Link[]>([])
-  const [status, setStatus] = useState<LinksStatus>('loading')
-  const [error, setError] = useState('')
-  const [version, setVersion] = useState(0) // bump to load again
+export function useLinks(token: string, setToken: (token: string) => void) {
+  const file = useRepoFile(token, DATA_FILES.links, parseLinks)
+  const { commit: commitFile, reload } = file
   const followUps = useRef<number[]>([])
-
-  const reload = useCallback(() => setVersion((v) => v + 1), [])
-
-  useEffect(() => {
-    let live = true
-    const load = () =>
-      loadLinks(token).then(
-        (next) => {
-          if (!live) return
-          setLinks(next)
-          setStatus('ready')
-          setError('')
-        },
-        (e: unknown) => {
-          if (!live) return
-          setStatus('error')
-          setError(e instanceof Error ? e.message : 'Couldn’t load saved links.')
-        },
-      )
-    load()
-    // Titles and thumbnails arrive a minute or so after saving, from the
-    // deploy workflow, so look again whenever the tab comes back into focus.
-    window.addEventListener('focus', load)
-    return () => {
-      live = false
-      window.removeEventListener('focus', load)
-    }
-  }, [token, version])
 
   useEffect(() => () => followUps.current.forEach(clearTimeout), [])
 
-  const setToken = useCallback((next: string) => {
-    writeToken(next.trim())
-    setTokenState(next.trim())
-  }, [])
-
   const commit = useCallback(async (change: (links: Link[]) => Link[], message: string) => {
-    if (!token) throw new Error('Connect to GitHub first.')
-    const next = await commitLinks(token, change, message)
-    setLinks(next)
-    // Pick up the fetched title and thumbnail once the workflow has run.
+    const next = await commitFile((data) => ({ ...data, links: change(data.links) }), message)
+    // Titles and thumbnails arrive a minute or so after saving, from the
+    // deploy workflow, so look again once it has had time to run.
     followUps.current.push(window.setTimeout(reload, 60_000), window.setTimeout(reload, 150_000))
-    return next
-  }, [token, reload])
+    return next.links
+  }, [commitFile, reload])
 
   return {
     token,
     setToken,
-    links,
-    status,
-    error,
+    links: file.data.links,
+    status: file.status,
+    error: file.error,
     reload,
     add: (link: Link) => commit((ls) => addLink(ls, link), `Save link from ${hostOf(link.url)}`),
     update: (id: string, patch: Partial<Link>) => commit((ls) => updateLink(ls, id, patch), 'Update saved link'),

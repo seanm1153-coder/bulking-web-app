@@ -1,6 +1,6 @@
 # Surplus
 
-A food ideas site for bulking: meal ideas, calorie boosters, and a library of saved links. Vite + React + TypeScript, published to GitHub Pages. `README.md` has the features, setup and code layout.
+A food ideas site for bulking: meal ideas, calorie boosters, the user's food preferences, and a library of saved links. Vite + React + TypeScript, published to GitHub Pages. `README.md` has the features, setup and code layout.
 
 ## Commands
 
@@ -11,9 +11,20 @@ A food ideas site for bulking: meal ideas, calorie boosters, and a library of sa
 
 Run `npm run lint && npm test && npm run build` before committing. CI runs the same.
 
+## Food preferences come first
+
+`public/data/preferences.json` is the user's food preferences: things to **avoid** (never include, in any form), things they **love**, and **notes**. The user edits it from the Your tastes section of the site, so read the current file before writing anything.
+
+- Read it before adding or changing any recipe, idea, booster, or meal suggestion, including suggestions made in chat.
+- Never include anything an `avoid` entry covers: not as an ingredient, topping, garnish, flavor, or in a drawing. Its `detail` says what counts; its `terms` are what the site matches.
+- Lean toward `love` entries and follow `notes`.
+- `src/data/ideas.test.ts` fails if any idea or booster mentions an avoided term. Never weaken that test or an `avoid` entry to make it pass. Change the recipe.
+- Don't add, remove or edit preferences yourself unless the user asks.
+
 ## How it fits together
 
-- There's no backend. Saved links are `public/data/links.json` in the repo. With a GitHub access key (kept in `localStorage` as `surplus:github-token`) the site reads and commits that file through the GitHub API (`src/lib/github.ts`). Without a key it reads the published copy.
+- There's no backend. The site's data is JSON in `public/data/` (`links.json`, `preferences.json`). With a GitHub access key (kept in `localStorage` as `surplus:github-token`) the site reads and commits those files through the GitHub API (`src/lib/github.ts`, `src/lib/useRepoFile.ts`). Without a key it reads the published copies.
+- The site hides ideas and boosters whose text matches an `avoid` preference (`src/lib/preferences.ts`).
 - The deploy workflow runs `scripts/enrich-links.mjs` to fill in `title`, `image`, `site` and `kind`, then commits the file back. The site never fetches link details itself.
 - Stickers are shapes in `src/stickers/shapes.ts`, colored by named roles from `PALETTE`. Recolor a sticker by passing a `palette` override rather than copying its shapes.
 
@@ -24,4 +35,4 @@ Run `npm run lint && npm test && npm run build` before committing. CI runs the s
 - New stickers go in `STICKERS` as a list of shapes in a 200×200 box. Keep them simple: a few flat shapes, ink outlines, no gradients.
 - Calorie and protein numbers in `src/data/ideas.ts` are rough estimates from typical ingredient values. Keep them plausible and keep the "rough estimates" note visible.
 - Never commit an access key. Don't add code that sends the key anywhere except `api.github.com`.
-- `links.json` is user data. Changes to the `Link` shape must keep old entries loading.
+- `links.json` and `preferences.json` are user data. Changes to their shape must keep old entries loading.

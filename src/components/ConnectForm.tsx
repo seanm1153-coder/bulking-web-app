@@ -25,7 +25,7 @@ export function ConnectForm({ onConnected }: { onConnected: (token: string) => v
     <form className="connect" onSubmit={submit}>
       <h2>Connect to GitHub</h2>
       <p>
-        Saved links live in your repo, <b>{REPO.owner}/{REPO.name}</b>. To save from this browser, give it an access key once.
+        Your saved links and tastes live in your repo, <b>{REPO.owner}/{REPO.name}</b>. To save from this browser, give it an access key once.
       </p>
       <ol className="steps">
         <li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">GitHub’s new token page</a>.</li>
