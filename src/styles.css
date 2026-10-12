@@ -646,8 +646,42 @@ body.is-dropping .drop-hint { display: grid; }
 .clean-box { margin-top: 18px; padding: 14px 18px; border: 2.5px solid var(--ink); border-radius: 20px; background: var(--white); font-size: 16px; }
 .clean-scale { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 8px; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .clean-scale b { margin-left: 6px; font-weight: 800; font-size: 19px; letter-spacing: 0; text-transform: none; color: var(--ink); }
-.clean-swaps { margin-top: 6px; color: var(--muted); }
-.clean-swaps b { color: var(--ink); }
+.clean-scale .link-btn { margin-left: auto; font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.clean-box > p + p { margin-top: 6px; }
+.clean-delta { font-size: 15px; color: var(--muted); }
+
+/* The slider: a flat track colored by where the recipe sits now, a sticker
+   thumb, and a tick per notch. The ticks are inset by half the thumb so they
+   line up with where it stops. */
+.clean-slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "dirty track clean"; align-items: start; gap: 0 12px; margin: 4px 0 12px; font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.clean-slider > span { padding-top: 8px; }
+.clean-end-dirty { grid-area: dirty; }
+.clean-end-clean { grid-area: clean; text-align: right; }
+.clean-track { grid-area: track; }
+/* On a phone the track gets the full width and the ends go underneath. */
+@media (max-width: 560px) {
+  .clean-slider { grid-template-columns: 1fr 1fr; grid-template-areas: "track track" "dirty clean"; }
+  .clean-slider > span { padding-top: 0; margin-top: 4px; }
+}
+.clean-track input { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 16px; margin: 7px 0 0; border: 2.5px solid var(--ink); border-radius: 999px; background: var(--paper); cursor: pointer; }
+.clean-1 .clean-track input, .clean-2 .clean-track input { background: var(--tomato); }
+.clean-3 .clean-track input { background: var(--butter); }
+.clean-4 .clean-track input, .clean-5 .clean-track input { background: var(--mint); }
+.clean-track input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border: 3px solid var(--ink); border-radius: 50%; background: var(--white); box-shadow: 2px 2px 0 var(--ink); }
+.clean-track input::-moz-range-thumb { box-sizing: border-box; width: 30px; height: 30px; border: 3px solid var(--ink); border-radius: 50%; background: var(--white); box-shadow: 2px 2px 0 var(--ink); }
+.clean-track input:focus { outline: none; }
+.clean-track input:focus-visible::-webkit-slider-thumb { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.clean-track input:focus-visible::-moz-range-thumb { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.clean-ticks { display: flex; justify-content: space-between; height: 26px; padding: 0 13px; margin-top: 8px; }
+.clean-ticks span { position: relative; display: flex; justify-content: center; width: 4px; }
+.clean-ticks span::before { content: ""; width: 4px; height: 8px; border-radius: 2px; background: var(--ink); }
+.clean-ticks .as-written { font-size: 11px; white-space: nowrap; color: var(--ink); }
+.clean-ticks .as-written::before { position: absolute; top: 0; }
+.clean-ticks .as-written { padding-top: 11px; }
+
+.line-changed { padding: 1px 5px; margin-left: -5px; border-radius: 5px; background: var(--butter); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.line-gone { color: var(--muted); text-decoration: line-through; }
+.ahead-note { margin-top: 10px; font-size: 14px; font-weight: 600; }
 .recipe { display: grid; grid-template-columns: 1fr 1.3fr; gap: 28px; margin: 26px 0; padding: 22px 0; border-block: 2.5px solid var(--ink); }
 .recipe ul, .recipe ol { margin: 10px 0 0; padding-left: 20px; }
 .recipe li { margin-bottom: 6px; font-size: 16.5px; }

@@ -22,14 +22,74 @@ export type CleanScore = 1 | 2 | 3 | 4 | 5
 
 export const CLEAN_LEVELS: Record<CleanScore, string> = { 1: 'Filthy', 2: 'Dirty', 3: 'Middle', 4: 'Mostly clean', 5: 'Clean' }
 
+// One notch on a recipe's clean-or-dirty slider: what changes from the notch
+// before, where that lands the recipe on the scale, and roughly what it does
+// to one portion. `swap` pairs a line as it reads at that point (ingredient
+// or step) with its replacement, or null to drop it.
+export interface Tweak {
+  to: CleanScore
+  says: string
+  kcal: number
+  protein: number
+  swap?: [string, string | null][]
+  add?: string[] // extra ingredients
+}
+
 export interface Clean {
   score: CleanScore
   why: string // one line on what pushes it up or down
-  swaps?: string[] // "Make it cleaner"
+  cleaner?: Tweak[] // notches from the recipe as written toward clean, in order
+  dirtier?: Tweak[] // and toward dirty
 }
 
 // "Feed me clean" picks from these; "Feed me dirty" from the rest.
 export const isClean = (i: Idea) => i.clean.score >= 4
+
+export interface Line {
+  text: string
+  changed?: boolean // swapped in or added by a notch
+  gone?: boolean // dropped by a notch
+}
+
+export interface Tweaked {
+  score: CleanScore
+  kcal: number
+  protein: number
+  ingredients: Line[]
+  steps: Line[]
+  says: string[] // what each applied notch changed
+  missing: string[] // swaps whose line wasn't there (a data bug; the tests catch it)
+}
+
+// The recipe at a notch on its slider: 0 is as written, positive is that
+// many notches cleaner, negative dirtier.
+export function tweakIdea(idea: Idea, notch: number): Tweaked {
+  const applied = (notch > 0 ? idea.clean.cleaner ?? [] : idea.clean.dirtier ?? []).slice(0, Math.abs(notch))
+  const ingredients: Line[] = idea.ingredients.map((text) => ({ text }))
+  const steps: Line[] = idea.steps.map((text) => ({ text }))
+  const missing: string[] = []
+  for (const t of applied) {
+    for (const [from, to] of t.swap ?? []) {
+      const lines = [ingredients, steps].find((list) => list.some((l) => !l.gone && l.text === from))
+      if (!lines) {
+        missing.push(from)
+        continue
+      }
+      const i = lines.findIndex((l) => !l.gone && l.text === from)
+      lines[i] = to === null ? { text: from, gone: true } : { text: to, changed: true }
+    }
+    ingredients.push(...(t.add ?? []).map((text) => ({ text, changed: true })))
+  }
+  return {
+    score: applied.at(-1)?.to ?? idea.clean.score,
+    kcal: idea.kcal + applied.reduce((n, t) => n + t.kcal, 0),
+    protein: idea.protein + applied.reduce((n, t) => n + t.protein, 0),
+    ingredients,
+    steps,
+    says: applied.map((t) => t.says),
+    missing,
+  }
+}
 
 // How an idea keeps when you make it ahead: frozen, in the fridge for a few
 // days, or as dry kits in the cupboard.
@@ -100,8 +160,13 @@ export const BOOSTERS: Booster[] = [
 
 // Everything a preference could match against.
 const aheadText = (a: Ahead) => [...(a.batch?.ingredients ?? []), ...(a.batch?.steps ?? []), a.lasts, a.eat, ...(a.fresh ?? [])]
+const tweakText = (t: Tweak) => [t.says, ...(t.swap ?? []).flatMap(([, to]) => (to ? [to] : [])), ...(t.add ?? [])]
 export const ideaText = (i: Idea) =>
-  [i.title, i.blurb, ...i.ingredients, ...i.steps, i.clean.why, ...(i.clean.swaps ?? []), ...(i.ahead ? aheadText(i.ahead) : [])].join('\n')
+  [
+    i.title, i.blurb, ...i.ingredients, ...i.steps, i.clean.why,
+    ...[...(i.clean.cleaner ?? []), ...(i.clean.dirtier ?? [])].flatMap(tweakText),
+    ...(i.ahead ? aheadText(i.ahead) : []),
+  ].join('\n')
 export const boosterText = (b: Booster) => [b.name, b.amount, b.tip].join('\n')
 
 export const IDEAS: Idea[] = [
@@ -115,7 +180,31 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Whey helps, but it’s pancake mix, butter and syrup.',
-      swaps: ['Use an oat or whole-wheat pancake mix.', 'Top with peanut butter and Greek yogurt instead of syrup.'],
+      cleaner: [
+        { to: 3, says: 'Oat pancake mix, yogurt and peanut butter instead of syrup', kcal: 50, protein: 15,
+          swap: [
+            ['¾ cup pancake mix', '¾ cup oat or whole-wheat pancake mix'],
+            ['3 tbsp maple syrup', '½ cup whole-milk Greek yogurt and 1 tbsp peanut butter'],
+            ['Stack them up and finish with more butter and syrup.', 'Stack them up and top with the Greek yogurt and a drizzle of warm peanut butter.'],
+          ],
+        },
+        { to: 4, says: 'Less butter, no chocolate chips', kcal: -205, protein: -2,
+          swap: [
+            ['1 tbsp butter', '1 tsp butter for the pan'],
+            ['2 tbsp chocolate chips', null],
+            ['Cook four or five pancakes in butter over medium heat, scattering chocolate chips on each.', 'Cook four or five pancakes in a lightly buttered pan over medium heat.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Bacon and double syrup', kcal: 285, protein: 9,
+          swap: [
+            ['3 tbsp maple syrup', '6 tbsp maple syrup'],
+            ['Stack them up and finish with more butter and syrup.', 'Stack them up with the bacon and finish with more butter and syrup.'],
+          ],
+          add: ['3 strips bacon, cooked crisp'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 4, unit: 'stacks',
@@ -138,7 +227,25 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 4,
       why: 'Oats, milk, whey and peanut butter. Only the honey and chocolate chips are treats.',
-      swaps: ['Skip the chocolate chips and add cinnamon.', 'Use Greek yogurt for half the milk.'],
+      cleaner: [
+        { to: 5, says: 'Greek yogurt and cinnamon instead of honey and chips', kcal: -95, protein: 8,
+          swap: [
+            ['1 tbsp honey', null],
+            ['2 tbsp chocolate chips', null],
+            ['Swirl in the peanut butter and honey.', 'Swirl in the peanut butter and Greek yogurt, and dust with cinnamon.'],
+            ['Refrigerate overnight. Top with chocolate chips in the morning.', 'Refrigerate overnight.'],
+          ],
+          add: ['½ cup whole-milk Greek yogurt', '1 tsp cinnamon'],
+        },
+      ],
+      dirtier: [
+        { to: 3, says: 'Double the honey and chocolate chips', kcal: 205, protein: 1,
+          swap: [
+            ['1 tbsp honey', '2 tbsp honey'],
+            ['2 tbsp chocolate chips', '¼ cup chocolate chips'],
+          ],
+        },
+      ],
     },
     ahead: {
       keeps: 'fridge', makes: 5, unit: 'jars',
@@ -161,7 +268,30 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Plenty of protein, but pork sausage, fried hash browns and a white tortilla.',
-      swaps: ['Use turkey sausage, or black beans.', 'Use roasted potatoes and a whole-wheat tortilla.'],
+      cleaner: [
+        { to: 3, says: 'Turkey sausage', kcal: -130, protein: 3,
+          swap: [
+            ['3 oz breakfast sausage', '3 oz turkey breakfast sausage'],
+          ],
+        },
+        { to: 4, says: 'Roasted potatoes and a whole-wheat tortilla', kcal: -100, protein: 2,
+          swap: [
+            ['½ cup hash browns', '½ cup diced potatoes, roasted in 1 tsp olive oil'],
+            ['1 large flour tortilla', '1 large whole-wheat tortilla'],
+            ['Brown the sausage, then crisp the hash browns in the same pan.', 'Roast the potatoes at 425°F for 20 minutes while you brown the sausage.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Bacon and double the cheese', kcal: 240, protein: 16,
+          swap: [
+            ['¼ cup shredded cheddar', '½ cup shredded cheddar'],
+            ['Brown the sausage, then crisp the hash browns in the same pan.', 'Cook the bacon, then brown the sausage and crisp the hash browns in the same pan.'],
+            ['Pile everything onto the tortilla, add salsa, and roll it up.', 'Pile everything onto the tortilla with the bacon, add salsa, and roll it up.'],
+          ],
+          add: ['3 strips bacon'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 8, unit: 'burritos',
@@ -184,7 +314,30 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Peanut butter is real food, but it’s low in protein for the calories and the honey is sugar.',
-      swaps: ['Use whole-grain bread and skip the honey.', 'Have a whey shake with it.'],
+      cleaner: [
+        { to: 3, says: 'Whole-grain bread, no honey, and a whey shake on the side', kcal: 205, protein: 32,
+          swap: [
+            ['2 thick slices sourdough', '2 thick slices whole-grain bread'],
+            ['1 tbsp honey', null],
+            ['Drizzle with honey and finish with flaky salt.', 'Finish with flaky salt, and have the shake with it.'],
+          ],
+          add: ['A whey shake made with 1 cup whole milk'],
+        },
+        { to: 4, says: 'No butter', kcal: -100, protein: 0,
+          swap: [
+            ['1 tbsp butter', null],
+            ['Toast the bread well and butter it.', 'Toast the bread well.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Brioche and double the honey', kcal: 125, protein: -2,
+          swap: [
+            ['2 thick slices sourdough', '2 thick slices brioche'],
+            ['1 tbsp honey', '2 tbsp honey'],
+          ],
+        },
+      ],
     },
   },
   {
@@ -197,7 +350,30 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Eggs are great. Bacon, cheese and a brioche bun pull it down.',
-      swaps: ['Use a whole-grain English muffin.', 'Swap the bacon for lean ham or another egg.'],
+      cleaner: [
+        { to: 3, says: 'Whole-grain English muffin', kcal: -90, protein: 1,
+          swap: [
+            ['1 brioche bun', '1 whole-grain English muffin'],
+            ['Toast the bun and stack it all up.', 'Toast the muffin and stack it all up.'],
+          ],
+        },
+        { to: 4, says: 'Lean ham instead of bacon, and a third egg', kcal: 0, protein: 6,
+          swap: [
+            ['3 strips bacon', '2 slices lean ham'],
+            ['2 eggs', '3 eggs'],
+            ['Cook the bacon until crisp.', 'Warm the ham in the pan.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Double bacon and a sausage patty', kcal: 330, protein: 18,
+          swap: [
+            ['3 strips bacon', '6 strips bacon'],
+            ['Cook the bacon until crisp.', 'Cook the bacon until crisp, then the sausage patty in the fat.'],
+          ],
+          add: ['1 breakfast sausage patty'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 6, unit: 'sandwiches',
@@ -220,7 +396,29 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 4,
       why: 'Eggs, avocado, whole grains and olive oil. A little light on protein for the calories.',
-      swaps: ['Stir a scoop of whey into the milk.'],
+      cleaner: [
+        { to: 5, says: 'Whey in the milk', kcal: 120, protein: 24,
+          swap: [
+            ['1 cup whole milk', '1 cup whole milk with a scoop of whey stirred in'],
+            ['Drink the milk with it.', 'Drink the whey milk with it.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 3, says: 'Bacon and cheddar on top', kcal: 245, protein: 16,
+          swap: [
+            ['Fry the eggs in the olive oil, two on each slice, and finish with chili flakes.', 'Fry the eggs in the olive oil, two on each slice, then top with the cheddar, crumbled bacon and chili flakes.'],
+          ],
+          add: ['3 strips bacon, cooked crisp', '1 oz shredded cheddar'],
+        },
+        { to: 2, says: 'Brioche, and butter instead of olive oil', kcal: 40, protein: -4,
+          swap: [
+            ['2 thick slices whole-grain bread', '2 thick slices brioche'],
+            ['1 tbsp olive oil', '1 tbsp butter'],
+            ['Fry the eggs in the olive oil, two on each slice, then top with the cheddar, crumbled bacon and chili flakes.', 'Fry the eggs in the butter, two on each slice, then top with the cheddar, crumbled bacon and chili flakes.'],
+          ],
+        },
+      ],
     },
   },
   {
@@ -233,7 +431,27 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 4,
       why: 'Chicken, beans, rice and avocado. The cheese and sour cream are the only treats.',
-      swaps: ['Use Greek yogurt instead of sour cream.', 'Make it brown rice.'],
+      cleaner: [
+        { to: 5, says: 'Greek yogurt instead of sour cream, and brown rice', kcal: -35, protein: 3,
+          swap: [
+            ['2 tbsp sour cream', '2 tbsp whole-milk Greek yogurt'],
+            ['1½ cups cooked rice', '1½ cups cooked brown rice'],
+            ['Build the bowl and top with cheese, avocado, sour cream and salsa.', 'Build the bowl and top with cheese, avocado, Greek yogurt and salsa.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 3, says: 'Queso and more sour cream', kcal: 160, protein: 5,
+          swap: [
+            ['2 tbsp sour cream', '¼ cup sour cream'],
+            ['Build the bowl and top with cheese, avocado, sour cream and salsa.', 'Build the bowl and top with cheese, queso, avocado, sour cream and salsa.'],
+          ],
+          add: ['¼ cup queso'],
+        },
+        { to: 2, says: 'Tortilla chips on top', kcal: 140, protein: 2,
+          add: ['A big handful of tortilla chips'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 5, unit: 'bowls',
@@ -256,7 +474,27 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 3,
       why: 'Good protein and a tomato sauce, over white pasta with fatty meatballs.',
-      swaps: ['Use whole-wheat spaghetti.', 'Make the meatballs with 90/10 beef or turkey.'],
+      cleaner: [
+        { to: 4, says: 'Whole-wheat spaghetti and lean meatballs', kcal: -150, protein: 6,
+          swap: [
+            ['4 oz dry spaghetti', '4 oz dry whole-wheat spaghetti'],
+            ['6 oz beef meatballs', '6 oz meatballs made with 90/10 beef or turkey'],
+          ],
+        },
+        { to: 5, says: 'Spinach in the sauce', kcal: 10, protein: 1,
+          swap: [
+            ['1 cup marinara', '1 cup marinara with a big handful of spinach stirred in'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 2, says: 'Garlic bread and more parmesan', kcal: 345, protein: 11,
+          swap: [
+            ['2 tbsp parmesan', '¼ cup parmesan'],
+          ],
+          add: ['2 slices garlic bread'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 6, unit: 'portions',
@@ -279,7 +517,32 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Lots of protein, but fatty beef, American cheese and a brioche bun.',
-      swaps: ['Use 90/10 beef and a whole-wheat bun.', 'Swap the American cheese for cheddar and add tomato.'],
+      cleaner: [
+        { to: 3, says: '90/10 beef', kcal: -130, protein: 5,
+          swap: [
+            ['6 oz 80/20 ground beef, as two balls', '6 oz 90/10 ground beef, as two balls'],
+          ],
+        },
+        { to: 4, says: 'Whole-wheat bun, cheddar, Greek yogurt sauce and tomato', kcal: -185, protein: 0,
+          swap: [
+            ['1 brioche bun', '1 whole-wheat bun'],
+            ['2 slices American cheese', '1 slice cheddar'],
+            ['1 tbsp burger sauce', '1 tbsp burger sauce made with Greek yogurt instead of mayo'],
+            ['Lettuce and thinly sliced onion', 'Lettuce, tomato and thinly sliced onion'],
+            ['Stack on a toasted bun with sauce, lettuce and onion.', 'Stack on a toasted bun with sauce, lettuce, tomato and onion.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Bacon and a third slice of cheese', kcal: 200, protein: 13,
+          swap: [
+            ['2 slices American cheese', '3 slices American cheese'],
+            ['Get a pan or griddle very hot.', 'Cook the bacon until crisp, then get the pan or griddle very hot.'],
+            ['Stack on a toasted bun with sauce, lettuce and onion.', 'Stack on a toasted bun with the bacon, sauce, lettuce and onion.'],
+          ],
+          add: ['3 strips bacon'],
+        },
+      ],
     },
   },
   {
@@ -292,7 +555,23 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 1,
       why: 'Fries, fatty beef, two cheeses and a mayo sauce. A proper dirty bulk.',
-      swaps: ['Use 90/10 beef and half the cheese.', 'Make the sauce all Greek yogurt, no mayo.'],
+      cleaner: [
+        { to: 2, says: '90/10 beef and half the cheese', kcal: -255, protein: -3,
+          swap: [
+            ['6 oz 80/20 ground beef', '6 oz 90/10 ground beef'],
+            ['2 slices American cheese', '1 slice American cheese'],
+            ['¼ cup shredded cheddar', '2 tbsp shredded cheddar'],
+            ['Brown the beef in a hot pan, breaking it up, and season with garlic powder, smoked paprika and salt. Press it flat, lay the cheese slices on top, and cover for a minute to melt.', 'Brown the beef in a hot pan, breaking it up, and season with garlic powder, smoked paprika and salt. Press it flat, lay the cheese on top, and cover for a minute to melt.'],
+          ],
+        },
+        { to: 3, says: 'All-yogurt sauce, and no sugar on the onions', kcal: -170, protein: 3,
+          swap: [
+            ['Sauce: 2 tbsp mayo, 3 tbsp whole-milk Greek yogurt, 1 tbsp ketchup, 1 tsp yellow mustard, ½ tsp Worcestershire sauce, 1 tsp white vinegar, hot sauce to taste', 'Sauce: 5 tbsp whole-milk Greek yogurt, 1 tbsp ketchup, 1 tsp yellow mustard, ½ tsp Worcestershire sauce, 1 tsp white vinegar, hot sauce to taste'],
+            ['1 tsp brown sugar', null],
+            ['Meanwhile, cook the onion in the butter over medium-low with the brown sugar and a pinch of salt for about 15 minutes, until soft and deep golden. Stir in the balsamic for the last minute.', 'Meanwhile, cook the onion in the butter over medium-low with a pinch of salt for about 15 minutes, until soft and deep golden. Stir in the balsamic for the last minute.'],
+          ],
+        },
+      ],
     },
     source: { name: 'Panacea Palm', url: 'https://www.youtube.com/shorts/1L2Ke_9VfnM' },
   },
@@ -306,7 +585,31 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Processed pepperoni and a lot of cheese on white dough.',
-      swaps: ['Swap the pepperoni for grilled chicken and onions.', 'Use part-skim mozzarella and add a side salad.'],
+      cleaner: [
+        { to: 3, says: 'Chicken and onion instead of pepperoni', kcal: -75, protein: 24,
+          swap: [
+            ['2 oz pepperoni', '4 oz cooked chicken breast, sliced, and ½ red onion'],
+            ['Stretch the dough, add sauce, cheese and pepperoni.', 'Stretch the dough, add sauce, cheese, chicken and onion.'],
+          ],
+        },
+        { to: 4, says: 'Whole-wheat dough, part-skim mozzarella and a side salad', kcal: 70, protein: 6,
+          swap: [
+            ['Pizza dough', 'Whole-wheat pizza dough'],
+            ['1½ cups mozzarella', '1½ cups part-skim mozzarella'],
+            ['Bake until bubbling and spotted. Eat three slices.', 'Bake until bubbling and spotted. Eat three slices with the salad.'],
+          ],
+          add: ['A big side salad with olive oil and vinegar'],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Double pepperoni and a stuffed crust', kcal: 440, protein: 25,
+          swap: [
+            ['2 oz pepperoni', '4 oz pepperoni'],
+            ['Stretch the dough, add sauce, cheese and pepperoni.', 'Stretch the dough, roll the cheese sticks into the edge, then add sauce, cheese and pepperoni.'],
+          ],
+          add: ['2 mozzarella sticks, for the crust'],
+        },
+      ],
     },
   },
   {
@@ -320,7 +623,30 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Great protein, but the sauce is cream, butter and cheese over white pasta.',
-      swaps: ['Make the sauce from Greek yogurt and parmesan instead of jarred alfredo.', 'Use whole-wheat fettuccine and add broccoli.'],
+      cleaner: [
+        { to: 4, says: 'Blended cottage cheese alfredo', kcal: 40, protein: 24,
+          swap: [
+            ['½ cup alfredo sauce', 'Sauce: ¾ cup cottage cheese, 2 tbsp parmesan, ¼ cup whole milk and 1 clove garlic, blended smooth'],
+            ['Cook the fettuccine and toss it with the warm sauce.', 'Blend the sauce until silky and warm it gently without boiling. Cook the fettuccine and toss it with the sauce.'],
+          ],
+        },
+        { to: 5, says: 'Whole-wheat fettuccine and broccoli', kcal: 50, protein: 8,
+          swap: [
+            ['4 oz dry fettuccine', '4 oz dry whole-wheat fettuccine'],
+            ['Blend the sauce until silky and warm it gently without boiling. Cook the fettuccine and toss it with the sauce.', 'Blend the sauce until silky and warm it gently without boiling. Cook the fettuccine, adding the broccoli for the last 3 minutes, and toss it all with the sauce.'],
+          ],
+          add: ['2 cups broccoli florets'],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Bacon and double the sauce', kcal: 350, protein: 13,
+          swap: [
+            ['½ cup alfredo sauce', '1 cup alfredo sauce'],
+            ['Season and sear the chicken, then slice it.', 'Crisp the bacon, then season and sear the chicken in the fat and slice it.'],
+          ],
+          add: ['3 strips bacon, chopped'],
+        },
+      ],
     },
   },
   {
@@ -333,7 +659,25 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 3,
       why: 'Chicken, tofu, eggs, peanuts and sprouts, with a sugary sauce and plenty of oil.',
-      swaps: ['Halve the brown sugar.', 'Double the bean sprouts and add shredded cabbage.'],
+      cleaner: [
+        { to: 4, says: 'Less sugar and oil, more vegetables', kcal: -110, protein: 4,
+          swap: [
+            ['Sauce: 1½ tbsp brown sugar, 1 tbsp fish sauce, 1 tbsp soy sauce, 1 tbsp rice vinegar, 1 tbsp lime juice, 2 tbsp water', 'Sauce: 2 tsp brown sugar, 1 tbsp fish sauce, 1 tbsp soy sauce, 1 tbsp rice vinegar, 1 tbsp lime juice, 2 tbsp water'],
+            ['1 cup bean sprouts', '2 cups bean sprouts and 1 cup shredded cabbage'],
+            ['2 tbsp neutral oil', '1 tbsp neutral oil'],
+            ['Add the noodles and sauce and toss for 2 to 3 minutes until the sauce is soaked up. Fold in the bean sprouts and chives.', 'Add the noodles and sauce and toss for 2 to 3 minutes until the sauce is soaked up. Fold in the bean sprouts, cabbage and chives.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 2, says: 'More oil, sugar and peanuts', kcal: 290, protein: 5,
+          swap: [
+            ['Sauce: 1½ tbsp brown sugar, 1 tbsp fish sauce, 1 tbsp soy sauce, 1 tbsp rice vinegar, 1 tbsp lime juice, 2 tbsp water', 'Sauce: 2½ tbsp brown sugar, 1 tbsp fish sauce, 1 tbsp soy sauce, 1 tbsp rice vinegar, 1 tbsp lime juice, 2 tbsp water'],
+            ['3 tbsp chopped roasted peanuts', '⅓ cup chopped roasted peanuts'],
+            ['2 tbsp neutral oil', '3 tbsp neutral oil'],
+          ],
+        },
+      ],
     },
     source: { name: 'Panacea Palm', url: 'https://www.youtube.com/shorts/UCoZdTQeeHA' },
   },
@@ -348,7 +692,30 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 3,
       why: 'Beef, egg and rice. The 80/20 beef and the honey-soy glaze are the dirty part.',
-      swaps: ['Use 90/10 beef.', 'Make it brown rice and add steamed broccoli.'],
+      cleaner: [
+        { to: 4, says: '90/10 beef, brown rice and broccoli', kcal: -80, protein: 8,
+          swap: [
+            ['5 oz 80/20 ground beef', '5 oz 90/10 ground beef'],
+            ['1½ cups cooked rice', '1½ cups cooked brown rice'],
+            ['Spoon the beef over rice and top with the egg and green onion.', 'Spoon the beef over rice with the broccoli and top with the egg and green onion.'],
+          ],
+          add: ['1 cup steamed broccoli'],
+        },
+        { to: 5, says: 'A third of the honey', kcal: -45, protein: 0,
+          swap: [
+            ['1 tbsp honey', '1 tsp honey'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 2, says: 'More glaze and two eggs fried in butter', kcal: 235, protein: 6,
+          swap: [
+            ['1 tbsp honey', '2 tbsp honey'],
+            ['1 egg', '2 eggs, fried crisp in butter'],
+            ['Fry the egg.', 'Fry the eggs in plenty of butter until the edges are crisp.'],
+          ],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 5, unit: 'bowls',
@@ -372,7 +739,28 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 3,
       why: 'Beans and rice add fiber, but it’s fatty beef, cheese and a huge white tortilla.',
-      swaps: ['Use 90/10 beef or ground turkey.', 'Use whole-wheat tortillas.'],
+      cleaner: [
+        { to: 4, says: '90/10 beef or turkey', kcal: -90, protein: 3,
+          swap: [
+            ['2 lb 80/20 ground beef', '2 lb 90/10 ground beef or ground turkey'],
+          ],
+        },
+        { to: 5, says: 'Whole-wheat tortillas, fat-free beans and half the cheese', kcal: -110, protein: 0,
+          swap: [
+            ['8 large (12-inch) flour tortillas', '8 large whole-wheat tortillas'],
+            ['Two 16-oz cans refried beans', 'Two 16-oz cans fat-free refried beans'],
+            ['2 cups shredded cheddar', '1 cup shredded cheddar'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 2, says: 'Queso and sour cream inside', kcal: 105, protein: 3,
+          swap: [
+            ['Let the filling cool completely. Fill each tortilla with it and a handful of cheese, then roll tightly.', 'Let the filling cool completely. Fill each tortilla with it, a handful of cheese and a spoonful each of queso and sour cream, then roll tightly.'],
+          ],
+          add: ['1 cup queso', '1 cup sour cream'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 8, unit: 'burritos',
@@ -392,7 +780,24 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 4,
       why: 'Beef, beans, tomatoes and onions. The cheese and sour cream are toppings, not the meal.',
-      swaps: ['Use 90/10 beef.', 'Top it with Greek yogurt instead of sour cream.'],
+      cleaner: [
+        { to: 5, says: '90/10 beef, brown rice and Greek yogurt on top', kcal: -150, protein: 5,
+          swap: [
+            ['2 lb 80/20 ground beef', '2 lb 90/10 ground beef'],
+            ['To serve: 6 cups cooked rice, 1½ cups shredded cheddar and sour cream', 'To serve: 6 cups cooked brown rice, 1½ cups shredded cheddar and Greek yogurt'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 3, says: 'Double cheese and plenty of sour cream', kcal: 175, protein: 8,
+          swap: [
+            ['To serve: 6 cups cooked rice, 1½ cups shredded cheddar and sour cream', 'To serve: 6 cups cooked rice, 3 cups shredded cheddar and plenty of sour cream'],
+          ],
+        },
+        { to: 2, says: 'Buttered cornbread on the side', kcal: 250, protein: 4,
+          add: ['A big square of cornbread with butter, for each bowl'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 6, unit: 'bowls',
@@ -411,7 +816,32 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Decent protein, but three cheeses over white pasta.',
-      swaps: ['Use part-skim ricotta and mozzarella.', 'Use whole-wheat ziti and stir in spinach.'],
+      cleaner: [
+        { to: 3, says: 'Blended cottage cheese for the ricotta, part-skim mozzarella', kcal: -75, protein: 2,
+          swap: [
+            ['15 oz whole-milk ricotta', '16 oz cottage cheese, blended smooth'],
+            ['3 cups shredded mozzarella', '3 cups shredded part-skim mozzarella'],
+            ['Mix the ricotta, egg, parmesan and half the mozzarella. Toss the pasta with the meat sauce, then fold in the ricotta mix.', 'Mix the blended cottage cheese, egg, parmesan and half the mozzarella. Toss the pasta with the meat sauce, then fold in the cheese mix.'],
+          ],
+        },
+        { to: 4, says: 'Whole-wheat pasta, 90/10 beef and spinach', kcal: -60, protein: 4,
+          swap: [
+            ['1 lb dry ziti or penne', '1 lb dry whole-wheat ziti or penne'],
+            ['1 lb 80/20 ground beef', '1 lb 90/10 ground beef'],
+            ['Brown the beef with the onion, season, and stir in the marinara.', 'Brown the beef with the onion, season, wilt in the spinach and stir in the marinara.'],
+          ],
+          add: ['5 oz baby spinach'],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Italian sausage and an extra cup of mozzarella', kcal: 105, protein: 2,
+          swap: [
+            ['1 lb 80/20 ground beef', '1 lb Italian sausage'],
+            ['3 cups shredded mozzarella', '4 cups shredded mozzarella'],
+            ['Brown the beef with the onion, season, and stir in the marinara.', 'Brown the sausage with the onion, season, and stir in the marinara.'],
+          ],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 6, unit: 'squares',
@@ -430,7 +860,28 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 1,
       why: 'Bacon, butter, a pound of cheddar and white pasta. Filthy, on purpose.',
-      swaps: ['Use half the bacon and stir in broccoli.', 'Blend cottage cheese into the sauce in place of a third of the cheddar.'],
+      cleaner: [
+        { to: 2, says: 'Half the bacon and cheddar, with blended cottage cheese', kcal: -150, protein: -6,
+          swap: [
+            ['1 lb bacon, chopped', '½ lb bacon, chopped'],
+            ['4 cups shredded sharp cheddar', '2 cups shredded sharp cheddar'],
+            ['Melt the butter, whisk in the flour for a minute, then slowly whisk in the milk. Simmer until it coats a spoon. Off the heat, stir in the cheeses and mustard powder.', 'Melt the butter, whisk in the flour for a minute, then slowly whisk in the milk. Simmer until it coats a spoon. Off the heat, stir in the blended cottage cheese, the cheeses and mustard powder.'],
+          ],
+          add: ['2 cups cottage cheese, blended smooth'],
+        },
+        { to: 3, says: 'An all-cottage-cheese sauce, no butter, and broccoli', kcal: -200, protein: -4,
+          swap: [
+            ['4 tbsp butter', null],
+            ['¼ cup flour', null],
+            ['4 cups whole milk', '1 cup whole milk'],
+            ['1 cup panko tossed with 2 tbsp melted butter', '½ cup panko'],
+            ['Heat the oven to 375°F. Cook the macaroni 2 minutes short of done and drain.', 'Heat the oven to 375°F. Cook the macaroni 2 minutes short of done, adding the broccoli for the last 2 minutes, and drain.'],
+            ['Melt the butter, whisk in the flour for a minute, then slowly whisk in the milk. Simmer until it coats a spoon. Off the heat, stir in the blended cottage cheese, the cheeses and mustard powder.', 'Blend the cottage cheese with the milk until smooth, warm it gently, then stir in the cheeses and mustard powder until melted.'],
+            ['Fold in the macaroni and bacon, spread it in a 9×13 dish, top with the panko and bake 20 minutes.', 'Fold in the macaroni, broccoli and bacon, spread it in a 9×13 dish, top with the panko and bake 20 minutes.'],
+          ],
+          add: ['3 cups broccoli florets'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 6, unit: 'portions',
@@ -449,6 +900,21 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 5,
       why: 'Lean chicken, brown rice, avocado and vegetables. The extra calories come from good fats.',
+      dirtier: [
+        { to: 4, says: 'Chicken thighs and white rice', kcal: 70, protein: -7,
+          swap: [
+            ['8 oz chicken breast, in chunks', '8 oz chicken thighs, in chunks'],
+            ['1½ cups cooked brown rice', '1½ cups cooked white rice'],
+          ],
+        },
+        { to: 3, says: 'Crispy fried with a honey glaze', kcal: 325, protein: 0,
+          swap: [
+            ['1 tbsp sesame or olive oil', '3 tbsp neutral oil, for shallow-frying'],
+            ['Sear the chicken in the oil over high heat until charred at the edges and cooked through, then toss it with the rest of the sauce.', 'Toss the chicken in the cornstarch and shallow-fry it in the oil until crisp, then toss it with the rest of the sauce and the honey.'],
+          ],
+          add: ['¼ cup cornstarch', '1 tbsp honey'],
+        },
+      ],
     },
     ahead: {
       keeps: 'fridge', makes: 4, unit: 'bowls',
@@ -471,6 +937,23 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 5,
       why: 'Lean steak, potatoes and green beans, with olive oil for the extra calories.',
+      dirtier: [
+        { to: 4, says: 'Ribeye, basted in butter', kcal: 290, protein: -6,
+          swap: [
+            ['8 oz sirloin steak', '8 oz ribeye'],
+            ['Pat the steak dry, season it well and sear in a very hot pan for 3 to 4 minutes a side. Rest it 5 minutes.', 'Pat the steak dry, season it well and sear in a very hot pan for 3 to 4 minutes a side, basting with the butter at the end. Rest it 5 minutes.'],
+          ],
+          add: ['1 tbsp butter, to baste'],
+        },
+        { to: 3, says: 'Loaded mashed potatoes', kcal: 235, protein: 8,
+          swap: [
+            ['1 lb baby potatoes, halved', '1 lb potatoes, peeled and chunked'],
+            ['2 tbsp olive oil', '1 tsp olive oil'],
+            ['Heat the oven to 425°F. Toss the potatoes with most of the oil, salt and paprika, and roast 25 to 30 minutes until crisp.', 'Boil the potatoes for 15 minutes until soft, then mash them with the butter, sour cream and cheddar.'],
+          ],
+          add: ['2 tbsp butter, ¼ cup sour cream and 1 oz shredded cheddar, for the mash'],
+        },
+      ],
     },
   },
   {
@@ -483,6 +966,19 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 5,
       why: 'Chicken, sweet potato and broccoli roasted in olive oil, with a yogurt sauce.',
+      dirtier: [
+        { to: 4, says: 'Honey glaze on the chicken', kcal: 130, protein: 0,
+          swap: [
+            ['Toss the chicken and broccoli with the rest of the oil and spices, add them to the tray and roast 20 to 25 minutes more, until the chicken is cooked through.', 'Toss the chicken and broccoli with the rest of the oil and spices, add them to the tray and roast 20 to 25 minutes more, brushing the chicken with honey for the last 5, until it’s cooked through.'],
+          ],
+          add: ['2 tbsp honey'],
+        },
+        { to: 3, says: 'Ranch instead of the yogurt sauce', kcal: 150, protein: -9,
+          swap: [
+            ['Sauce: ½ cup whole-milk Greek yogurt, 1 tbsp sriracha and a pinch of salt', 'Sauce: ¼ cup ranch dressing and 1 tbsp sriracha'],
+          ],
+        },
+      ],
     },
     ahead: {
       keeps: 'fridge', makes: 4, unit: 'containers',
@@ -505,7 +1001,28 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Whey and oats help, but it’s mostly ice cream, malt and honey.',
-      swaps: ['Swap the ice cream for whole-milk Greek yogurt and ice.', 'Skip the honey.'],
+      cleaner: [
+        { to: 3, says: 'Greek yogurt instead of ice cream', kcal: -50, protein: 15,
+          swap: [
+            ['1 cup vanilla ice cream', '1 cup whole-milk Greek yogurt and a handful of ice'],
+          ],
+        },
+        { to: 4, says: 'No honey, half the malt', kcal: -105, protein: -1,
+          swap: [
+            ['1 tbsp honey', null],
+            ['2 tbsp malted milk powder', '1 tbsp malted milk powder'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Double ice cream and whipped cream', kcal: 320, protein: 5,
+          swap: [
+            ['1 cup vanilla ice cream', '2 cups vanilla ice cream'],
+            ['Pour into the biggest glass you own.', 'Pour into the biggest glass you own and top with whipped cream.'],
+          ],
+          add: ['Whipped cream'],
+        },
+      ],
     },
     ahead: {
       keeps: 'kit', makes: 7, unit: 'kits',
@@ -529,7 +1046,23 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 3,
       why: 'Whey, oats, peanut butter and milk, plus a scoop of ice cream.',
-      swaps: ['Swap the ice cream for whole-milk Greek yogurt and ice.'],
+      cleaner: [
+        { to: 4, says: 'Greek yogurt instead of ice cream', kcal: -35, protein: 7,
+          swap: [
+            ['½ cup chocolate ice cream', '½ cup whole-milk Greek yogurt and a handful of ice'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 2, says: 'Triple the ice cream', kcal: 290, protein: 5,
+          swap: [
+            ['½ cup chocolate ice cream', '1½ cups chocolate ice cream'],
+          ],
+        },
+        { to: 1, says: 'Two peanut butter cups blended in', kcal: 210, protein: 5,
+          add: ['2 peanut butter cups'],
+        },
+      ],
     },
     ahead: {
       keeps: 'kit', makes: 7, unit: 'kits',
@@ -552,7 +1085,31 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 2,
       why: 'Salami is processed and the crackers are white flour. The almonds are the clean part.',
-      swaps: ['Swap the salami for sliced turkey or roast beef.', 'Use whole-grain crackers and add more almonds.'],
+      cleaner: [
+        { to: 3, says: 'Turkey or roast beef instead of salami', kcal: -140, protein: 5,
+          swap: [
+            ['2 oz salami', '3 oz sliced turkey or roast beef'],
+            ['Slice the cheese and salami.', 'Slice the cheese and roll up the meat.'],
+          ],
+        },
+        { to: 4, says: 'Whole-grain crackers, double almonds and vegetables', kcal: 250, protein: 10,
+          swap: [
+            ['15 crackers', '15 whole-grain crackers'],
+            ['¼ cup salted almonds', '½ cup salted almonds'],
+            ['Pile it on a board with the crackers and almonds.', 'Pile it on a board with the crackers, almonds and vegetables.'],
+          ],
+          add: ['Baby carrots and snap peas'],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Chips instead of almonds, plus pepperoni', kcal: 240, protein: 2,
+          swap: [
+            ['¼ cup salted almonds', '2 oz potato chips'],
+            ['Pile it on a board with the crackers and almonds.', 'Pile it on a board with the crackers, chips and pepperoni.'],
+          ],
+          add: ['1 oz pepperoni'],
+        },
+      ],
     },
     ahead: {
       keeps: 'fridge', makes: 5, unit: 'snack boxes',
@@ -575,7 +1132,22 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 1,
       why: 'Marshmallow creme on white bread. Fun, filthy and low in protein.',
-      swaps: ['Use whole-grain bread.', 'Skip the marshmallow and double the peanut butter.'],
+      cleaner: [
+        { to: 2, says: 'Whole-grain bread', kcal: 20, protein: 3,
+          swap: [
+            ['2 slices soft white bread', '2 slices whole-grain bread'],
+          ],
+        },
+        { to: 3, says: 'No marshmallow: double peanut butter and whey in the milk', kcal: 270, protein: 31,
+          swap: [
+            ['2 tbsp marshmallow creme', null],
+            ['2 tbsp peanut butter', '4 tbsp peanut butter'],
+            ['1 cup whole milk', '1 cup whole milk with a scoop of whey stirred in'],
+            ['Spread peanut butter on one slice and marshmallow creme on the other.', 'Spread the peanut butter on both slices.'],
+            ['Drink the milk with it.', 'Drink the whey milk with it.'],
+          ],
+        },
+      ],
     },
   },
   {
@@ -589,7 +1161,29 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 3,
       why: 'Greek yogurt and nuts are great. The granola, honey and chocolate chips are sugar.',
-      swaps: ['Use a low-sugar granola or toasted oats.', 'Skip the chocolate chips.'],
+      cleaner: [
+        { to: 4, says: 'Low-sugar granola, no chocolate chips', kcal: -130, protein: 0,
+          swap: [
+            ['½ cup plain or nut granola', '½ cup low-sugar granola or toasted oats'],
+            ['1 tbsp chocolate chips', null],
+            ['Add half the granola, nuts and chocolate chips, then repeat.', 'Add half the granola and nuts, then repeat.'],
+          ],
+        },
+        { to: 5, says: 'No honey', kcal: -65, protein: 0,
+          swap: [
+            ['1 tbsp honey', null],
+            ['Finish with honey.', 'Finish with a pinch of cinnamon.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 2, says: 'Triple the chips, double the honey', kcal: 205, protein: 1,
+          swap: [
+            ['1 tbsp chocolate chips', '3 tbsp chocolate chips'],
+            ['1 tbsp honey', '2 tbsp honey'],
+          ],
+        },
+      ],
     },
     ahead: {
       keeps: 'fridge', makes: 4, unit: 'jars',
@@ -613,7 +1207,23 @@ export const IDEAS: Idea[] = [
     clean: {
       score: 3,
       why: 'Oats, peanut butter and whey, held together with honey and chocolate.',
-      swaps: ['Halve the honey and the chocolate on top.'],
+      cleaner: [
+        { to: 4, says: 'Less honey, half the chocolate', kcal: -70, protein: -1,
+          swap: [
+            ['⅓ cup honey', '3 tbsp honey'],
+            ['1 cup chocolate chips', '½ cup chocolate chips'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 2, says: 'More chocolate and peanut butter cups on top', kcal: 70, protein: 1,
+          swap: [
+            ['1 cup chocolate chips', '1½ cups chocolate chips'],
+            ['Press into a lined 8×8 pan. Melt the rest of the chips and spread them on top.', 'Press into a lined 8×8 pan. Melt the rest of the chips, spread them on top and press in the peanut butter cups.'],
+          ],
+          add: ['8 mini peanut butter cups'],
+        },
+      ],
     },
     ahead: {
       keeps: 'freezer', makes: 8, unit: 'bars',
