@@ -6,16 +6,198 @@
       "label": "Fruit",
       "detail": "No fruit in anything: not as an ingredient, a topping, a garnish or a flavor. That covers fresh and frozen fruit, berries, bananas, citrus fruit and zest, jam, jelly, other fruit juice and dried fruit. Citrus juice is fine: lemon, lime, orange and grapefruit juice. Tomatoes, avocado, olives and peppers are fine.",
       "terms": [
-        "fruit", "fruits",
-        "banana", "apple", "pear", "grape", "cherry", "cherries", "peach", "nectarine", "plum", "apricot",
-        "berry", "berries", "strawberry", "strawberries", "blueberry", "blueberries", "raspberry", "raspberries",
-        "blackberry", "blackberries", "cranberry", "cranberries", "acai",
-        "orange", "lemon", "lime", "grapefruit", "citrus", "tangerine", "clementine", "mandarin",
-        "mango", "pineapple", "papaya", "kiwi", "melon", "watermelon", "cantaloupe", "pomegranate", "passion fruit",
-        "guava", "lychee", "fig", "raisin", "sultana", "currant", "prune", "medjool",
-        "jam", "jelly", "marmalade", "compote", "applesauce"
+        "fruit",
+        "fruits",
+        "banana",
+        "apple",
+        "pear",
+        "grape",
+        "cherry",
+        "cherries",
+        "peach",
+        "nectarine",
+        "plum",
+        "apricot",
+        "berry",
+        "berries",
+        "strawberry",
+        "strawberries",
+        "blueberry",
+        "blueberries",
+        "raspberry",
+        "raspberries",
+        "blackberry",
+        "blackberries",
+        "cranberry",
+        "cranberries",
+        "acai",
+        "orange",
+        "lemon",
+        "lime",
+        "grapefruit",
+        "citrus",
+        "tangerine",
+        "clementine",
+        "mandarin",
+        "mango",
+        "pineapple",
+        "papaya",
+        "kiwi",
+        "melon",
+        "watermelon",
+        "cantaloupe",
+        "pomegranate",
+        "passion fruit",
+        "guava",
+        "lychee",
+        "fig",
+        "raisin",
+        "sultana",
+        "currant",
+        "prune",
+        "medjool",
+        "jam",
+        "jelly",
+        "marmalade",
+        "compote",
+        "applesauce"
       ],
-      "allow": ["lemon juice", "lime juice", "orange juice", "grapefruit juice", "citrus juice"],
+      "allow": [
+        "lemon juice",
+        "lime juice",
+        "orange juice",
+        "grapefruit juice",
+        "citrus juice"
+      ],
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-peanut-butter-bd11",
+      "kind": "love",
+      "label": "Peanut butter",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-spicy-food-1926",
+      "kind": "love",
+      "label": "Spicy food",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-cheese-eee5",
+      "kind": "love",
+      "label": "Cheese",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-bacon-bf1c",
+      "kind": "love",
+      "label": "Bacon",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-onions-45a9",
+      "kind": "love",
+      "label": "Onions",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-chocolate-8045",
+      "kind": "love",
+      "label": "Chocolate",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-beef-and-burgers-9bcf",
+      "kind": "love",
+      "label": "Beef and burgers",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-avocado-12bd",
+      "kind": "love",
+      "label": "Avocado",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-milk-28b3",
+      "kind": "love",
+      "label": "Milk",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "avoid-pickles-c037",
+      "kind": "avoid",
+      "label": "Pickles",
+      "added": "2026-10-11",
+      "terms": [
+        "pickle"
+      ]
+    },
+    {
+      "id": "love-chicken-9112",
+      "kind": "love",
+      "label": "Chicken",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-pasta-a578",
+      "kind": "love",
+      "label": "Pasta",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "avoid-olives-90ea",
+      "kind": "avoid",
+      "label": "Olives",
+      "added": "2026-10-11",
+      "terms": [
+        "olive"
+      ],
+      "allow": [
+        "olive oil"
+      ]
+    },
+    {
+      "id": "love-rice-cf29",
+      "kind": "love",
+      "label": "Rice",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-pizza-a67a",
+      "kind": "love",
+      "label": "Pizza",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-butter-ecf0",
+      "kind": "love",
+      "label": "Butter",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-burritos-and-tacos-7b9f",
+      "kind": "love",
+      "label": "Burritos and tacos",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-oats-dbba",
+      "kind": "love",
+      "label": "Oats",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-protein-powder-903d",
+      "kind": "love",
+      "label": "Protein powder",
+      "added": "2026-10-11"
+    },
+    {
+      "id": "love-bread-46a0",
+      "kind": "love",
+      "label": "Bread",
       "added": "2026-10-11"
     }
   ],
