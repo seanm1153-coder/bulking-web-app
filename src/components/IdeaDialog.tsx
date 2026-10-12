@@ -1,11 +1,18 @@
 import { useState } from 'react'
-import { IDEA_CATEGORIES, type Booster, type BoosterId, type Idea } from '../data/ideas'
+import { asPreference, foodsIn, type Food } from '../data/foods'
+import { IDEA_CATEGORIES, ideaText, type Booster, type BoosterId, type Idea } from '../data/ideas'
+import type { Thumb } from '../lib/preferences'
+import type { PreferencesApi } from '../lib/usePreferences'
 import { Sticker } from '../stickers/Sticker'
+import { ConnectForm } from './ConnectForm'
 import { Modal } from './Modal'
 
-export function IdeaDialog({ idea, boosters: all, onClose, onAnother }: {
+export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClose, onAnother }: {
   idea: Idea
   boosters: Booster[]
+  prefs: PreferencesApi
+  token: string
+  setToken: (token: string) => void
   onClose: () => void
   onAnother?: () => void
 }) {
@@ -59,9 +66,93 @@ export function IdeaDialog({ idea, boosters: all, onClose, onAnother }: {
           </div>
         </div>
 
+        <Thumbs idea={idea} prefs={prefs} token={token} setToken={setToken} />
+
         <p className="fine">Calories and protein are rough estimates.</p>
         {onAnother && <button type="button" className="btn btn-tomato" onClick={onAnother}>Another idea</button>}
       </div>
     </Modal>
+  )
+}
+
+// 👍 or 👎 on the idea, then a nudge to turn it into tastes: the foods in the
+// recipe that aren't in your tastes yet, one tap each to Love or Never.
+function Thumbs({ idea, prefs, token, setToken }: {
+  idea: Idea
+  prefs: PreferencesApi
+  token: string
+  setToken: (token: string) => void
+}) {
+  const thumb = prefs.ratings.find((r) => r.idea === idea.slug)?.thumb
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const [added, setAdded] = useState<string[]>([])
+  const [pending, setPending] = useState<((token: string) => void) | null>(null) // waiting on a GitHub key
+
+  async function run(key: string, action: (t: string) => Promise<unknown>, withToken = token) {
+    if (!withToken) return setPending(() => (t: string) => void run(key, action, t))
+    setBusy(key)
+    setError('')
+    try {
+      await action(withToken)
+      return true
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Couldn’t save that. Try again.')
+      return false
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const press = (t: Thumb) => void run(t, (tok) => prefs.rate(idea, thumb === t ? null : t, tok))
+  const pick = (food: Food, kind: 'love' | 'avoid') =>
+    void run(food.id, async (tok) => {
+      const { terms, allow } = asPreference(food, kind)
+      await prefs.add(kind, food.label, tok, { terms, allow })
+      setAdded((a) => [...a, `${food.label} → ${kind === 'love' ? 'Love' : 'Never'}`])
+    })
+
+  const foods = thumb ? foodsIn(ideaText(idea), prefs.prefs) : []
+  const kind = thumb === 'up' ? 'love' : 'avoid'
+
+  return (
+    <div className="thumbs">
+      <div className="thumbs-row">
+        <h3>Would you make it again?</h3>
+        <div className="thumbs-btns" role="group" aria-label="Rate this idea">
+          <button type="button" className="thumb thumb-up" aria-pressed={thumb === 'up'} aria-label="Thumbs up" disabled={busy !== null} onClick={() => press('up')}>👍</button>
+          <button type="button" className="thumb thumb-down" aria-pressed={thumb === 'down'} aria-label="Thumbs down" disabled={busy !== null} onClick={() => press('down')}>👎</button>
+        </div>
+      </div>
+      {thumb === 'down' && <p className="thumbs-note">Hidden from Ideas and Feed me. Undo it here or in Your tastes.</p>}
+      {foods.length > 0 && (
+        <div className="thumbs-more">
+          <p>{thumb === 'up' ? 'What did you love about it? Tap to add to Love.' : 'Anything in it you never want? Tap to add to Never.'}</p>
+          <div className="boost-chips" role="group" aria-label={thumb === 'up' ? 'Add to Love' : 'Add to Never'}>
+            {foods.map((f) => (
+              <button key={f.id} type="button" className={`boost-chip food-chip food-${kind}`} disabled={busy !== null} onClick={() => pick(f, kind)}>
+                <Sticker name={f.sticker} palette={f.palette} />
+                <span>{busy === f.id ? 'Saving…' : f.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {added.length > 0 && <p className="thumbs-note" aria-live="polite">Added {added.join(', ')}.</p>}
+      {error && <p className="error" role="alert">{error}</p>}
+
+      {pending && (
+        <Modal label="Connect to GitHub" onClose={() => setPending(null)} className="link-modal">
+          <ConnectForm
+            onConnected={(t) => {
+              const next = pending
+              setToken(t)
+              setPending(null)
+              next(t)
+            }}
+          />
+        </Modal>
+      )}
+    </div>
   )
 }

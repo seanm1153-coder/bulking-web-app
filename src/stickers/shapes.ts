@@ -21,6 +21,15 @@ export const PALETTE = {
   oil: '#C8D85A', olive: '#5C7A2B',
   butterTop: '#FFF0A0', butterSide: '#FFD95C', wrapper: '#FFFFFF',
   almond: '#C98A4B', cashew: '#F0D6A0', almondLine: '#9A5B2E',
+  baconFat: '#FFD9C7', bone: '#FFF6DE', chickenLight: '#E39A5B', chopstick: '#E8B46A',
+  choc: '#7A4128', chocDark: '#4A2616', chocWrap: '#FF5A36',
+  cone: '#E8B46A', coneLine: '#B8642B', vanilla: '#FFF3D6',
+  cap: '#C7783A', capSpot: '#F2C98B', stem: '#FFF3D6',
+  onion: '#C58BD1', onionLine: '#8E4FA0', sprout: '#5BC25A',
+  chili: '#E8352B',
+  fish: '#9ED2F6', fishFin: '#2B45E0',
+  tomato: '#FF5A36', leaf: '#3E9A3A',
+  pickle: '#6FA03A', pickleBump: '#4C7A25',
 }
 
 export type Role = keyof typeof PALETTE
@@ -197,6 +206,76 @@ export const STICKERS = {
     line('M52 120 Q66 128 80 136', 'almondLine', 3),
     line('M120 140 Q132 132 146 124', 'almondLine', 3),
     line('M84 158 Q102 164 120 160', 'almondLine', 3),
+  ],
+  bacon: [
+    p('M20 92 Q47 62 74 92 Q101 122 128 92 Q155 62 182 92 L182 132 Q155 102 128 132 Q101 162 74 132 Q47 102 20 132 Z', 'bacon', { transform: 'rotate(-14 100 112)' }),
+    line('M26 112 Q49 86 74 112 Q101 140 128 112 Q155 86 176 110', 'baconFat', 9, undefined, { transform: 'rotate(-14 100 112)' }),
+  ],
+  drumstick: [
+    c(156, 182, 15, 'bone'), c(178, 160, 15, 'bone'),
+    r(127, 104, 24, 76, 12, 'bone', { transform: 'rotate(-45 139 142)' }),
+    p('M30 84 C22 34 84 12 124 42 C158 68 150 120 116 134 C86 146 38 128 30 84 Z', 'chicken'),
+    e(72, 62, 18, 9, 'chickenLight', { transform: 'rotate(-30 72 62)' }, true),
+  ],
+  rice: [
+    r(116, 6, 11, 100, 5.5, 'chopstick', { transform: 'rotate(24 121 56)' }),
+    r(136, 12, 11, 96, 5.5, 'chopstick', { transform: 'rotate(36 141 60)' }),
+    c(62, 96, 28, 'rice'), c(100, 78, 34, 'rice'), c(140, 94, 28, 'rice'),
+    e(84, 74, 5, 3, 'cream', { transform: 'rotate(30 84 74)' }, true), e(112, 62, 5, 3, 'cream', { transform: 'rotate(-20 112 62)' }, true),
+    e(60, 88, 5, 3, 'cream', { transform: 'rotate(-40 60 88)' }, true), e(142, 84, 5, 3, 'cream', { transform: 'rotate(15 142 84)' }, true),
+    p('M16 98 H184 Q178 172 100 176 Q22 172 16 98 Z', 'bowl'),
+    line('M40 120 H160', 'cream', 5, '2 14'),
+  ],
+  chocolate: [
+    r(52, 16, 96, 112, 10, 'choc', { transform: 'rotate(-10 100 100)' }),
+    line('M52 52 H148 M52 88 H148 M100 16 V112', 'chocDark', 5, undefined, { transform: 'rotate(-10 100 100)' }),
+    p('M48 112 L58 102 L68 112 L78 102 L88 112 L98 102 L108 112 L118 102 L128 112 L138 102 L152 112 V124 H48 Z', 'foil', { transform: 'rotate(-10 100 100)' }),
+    r(44, 118, 112, 70, 10, 'chocWrap', { transform: 'rotate(-10 100 100)' }),
+    line('M60 152 H140', 'cream', 7, undefined, { transform: 'rotate(-10 100 100)' }),
+  ],
+  iceCream: [
+    p('M60 104 L100 194 L140 104 Z', 'cone'),
+    line('M74 120 L128 112 M80 140 L120 134 M88 160 L112 156', 'coneLine', 4),
+    p('M54 104 Q54 56 100 56 Q146 56 146 104 Q135 116 123 104 Q111 116 100 104 Q89 116 77 104 Q65 116 54 104 Z', 'choc'),
+    c(100, 46, 32, 'vanilla'),
+    sprinkle(84, 34, 20, 'lid'), sprinkle(114, 30, -30, 'milkBlue'), sprinkle(108, 56, 60, 'lettuce'), sprinkle(86, 58, -50, 'butter'),
+  ],
+  mushroom: [
+    p('M76 108 Q70 168 66 184 H134 Q130 168 124 108 Z', 'stem'),
+    p('M18 118 C18 52 58 20 100 20 C142 20 182 52 182 118 Q100 136 18 118 Z', 'cap'),
+    c(66, 66, 12, 'capSpot', {}, true), c(118, 48, 9, 'capSpot', {}, true), c(150, 88, 11, 'capSpot', {}, true), c(96, 92, 8, 'capSpot', {}, true),
+  ],
+  onion: [
+    p('M90 44 L94 10 H106 L110 44 Z', 'sprout'),
+    p('M100 34 C152 58 180 108 162 150 C148 184 52 184 38 150 C20 108 48 58 100 34 Z', 'onion'),
+    line('M100 44 C80 80 72 132 84 174', 'onionLine', 4),
+    line('M100 44 C120 80 128 132 116 174', 'onionLine', 4),
+    line('M88 180 L84 194 M100 182 V196 M112 180 L116 194', 'ink', 3),
+  ],
+  chili: [
+    p('M138 44 C140 24 156 14 172 20 L168 32 C158 30 152 38 152 48 Z', 'leaf'),
+    p('M152 42 C182 72 166 144 114 172 C82 190 40 192 22 178 C70 168 110 128 126 70 C130 54 138 44 152 42 Z', 'chili'),
+    e(132, 86, 6, 18, 'white', { transform: 'rotate(20 132 86)' }, true),
+  ],
+  fish: [
+    p('M144 100 L188 60 V140 Z', 'fishFin'),
+    p('M78 62 Q96 30 124 62 Z', 'fishFin'),
+    e(90, 100, 72, 44, 'fish'),
+    line('M116 70 Q128 100 116 130', 'fishFin', 4),
+    c(52, 90, 10, 'white'),
+    c(54, 90, 4, 'ink', {}, true),
+  ],
+  tomato: [
+    p('M100 50 C160 44 188 90 178 130 C168 172 132 188 100 188 C68 188 32 172 22 130 C12 90 40 44 100 50 Z', 'tomato'),
+    r(95, 16, 10, 30, 5, 'leaf'),
+    p('M100 62 L74 50 L92 46 L82 30 L100 40 L118 30 L108 46 L126 50 Z', 'leaf'),
+    e(60, 100, 16, 9, 'white', { transform: 'rotate(-35 60 100)' }, true),
+  ],
+  pickle: [
+    r(66, 18, 68, 168, 34, 'pickle', { transform: 'rotate(28 100 102)' }),
+    c(90, 48, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true), c(112, 74, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true),
+    c(88, 98, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true), c(110, 124, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true),
+    c(90, 150, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true), c(112, 168, 4, 'pickleBump', { transform: 'rotate(28 100 102)' }, true),
   ],
 } satisfies Record<string, Shape[]>
 

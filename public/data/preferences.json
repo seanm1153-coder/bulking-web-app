@@ -4,7 +4,7 @@
       "id": "avoid-fruit",
       "kind": "avoid",
       "label": "Fruit",
-      "detail": "No fruit in anything: not as an ingredient, a topping, a garnish or a flavor. That covers fresh and frozen fruit, berries, bananas, citrus (including lemon and lime juice), jam, jelly, fruit juice and dried fruit. Tomatoes, avocado, olives and peppers are fine.",
+      "detail": "No fruit in anything: not as an ingredient, a topping, a garnish or a flavor. That covers fresh and frozen fruit, berries, bananas, citrus fruit and zest, jam, jelly, other fruit juice and dried fruit. Citrus juice is fine: lemon, lime, orange and grapefruit juice. Tomatoes, avocado, olives and peppers are fine.",
       "terms": [
         "fruit", "fruits",
         "banana", "apple", "pear", "grape", "cherry", "cherries", "peach", "nectarine", "plum", "apricot",
@@ -15,7 +15,9 @@
         "guava", "lychee", "fig", "raisin", "sultana", "currant", "prune", "medjool",
         "jam", "jelly", "marmalade", "compote", "applesauce"
       ],
+      "allow": ["lemon juice", "lime juice", "orange juice", "grapefruit juice", "citrus juice"],
       "added": "2026-10-11"
     }
-  ]
+  ],
+  "ratings": []
 }

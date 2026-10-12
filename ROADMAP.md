@@ -1,6 +1,6 @@
 # Roadmap
 
-Ideas for what Surplus could do next, from a brainstorm on 2026-10-11. Nothing here is built yet. Everything stays food-only, about ideas rather than tracking, and in the sticker style. New recipes always follow [`public/data/preferences.json`](public/data/preferences.json).
+Ideas for what Surplus could do next, from a brainstorm on 2026-10-11. Built so far: #11 and #12. Everything stays food-only, about ideas rather than tracking, and in the sticker style. New recipes always follow [`public/data/preferences.json`](public/data/preferences.json).
 
 **Up next:** set up the Claude API (see [below](#claude-api)), then build #1, #5 and #7.
 
@@ -35,8 +35,8 @@ Ideas for what Surplus could do next, from a brainstorm on 2026-10-11. Nothing h
 
 | # | Idea | What it does | Claude API? |
 | --- | --- | --- | --- |
-| 11 | **Swipe quiz** | Swipe right or left on about 30 sticker cards to fill in Love and Never automatically. | No |
-| 12 | **Thumbs on ideas** | 👍 or 👎 on any recipe, feeding your tastes over time. | No |
+| 11 | **Swipe quiz** ✅ | Swipe right or left on about 30 sticker cards to fill in Love and Never automatically. | No |
+| 12 | **Thumbs on ideas** ✅ | 👍 or 👎 on any recipe, feeding your tastes over time. | No |
 
 ### Practical
 
@@ -45,7 +45,7 @@ Ideas for what Surplus could do next, from a brainstorm on 2026-10-11. Nothing h
 | 13 | **Grocery list** | Pick a few ideas for the week and get one combined shopping list grouped by aisle, ready to copy into Notes or Reminders. | No |
 | 14 | **Eating-out cheat sheet** | The biggest orders at places like Chipotle, Chick-fil-A and Panera. | No |
 
-⭐ = top picks. #1 is what the preferences are for and keeps the ideas growing. #5 makes saved links useful for cooking, not just bookmarking. #7 is the most fun, needs no setup and suits the stickers.
+⭐ = top picks. ✅ = built. #1 is what the preferences are for and keeps the ideas growing. #5 makes saved links useful for cooking, not just bookmarking. #7 is the most fun, needs no setup and suits the stickers.
 
 ## Claude API
 

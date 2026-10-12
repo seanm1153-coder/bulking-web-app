@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import type { PrefKind, Preference } from '../lib/preferences'
+import type { PrefKind, Preference, Rating } from '../lib/preferences'
 import type { PreferencesApi } from '../lib/usePreferences'
 import { ConnectForm } from './ConnectForm'
 import { Modal } from './Modal'
@@ -10,15 +10,16 @@ const COLUMNS: { kind: PrefKind; title: string; hint: string; placeholder: strin
   { kind: 'note', title: 'Notes', hint: 'Anything else to keep in mind.', placeholder: 'Breakfast has to take under 10 minutes' },
 ]
 
-export function Tastes({ prefs, token, setToken }: {
+export function Tastes({ prefs, token, setToken, onQuiz }: {
   prefs: PreferencesApi
   token: string
   setToken: (token: string) => void
+  onQuiz: () => void
 }) {
   const [drafts, setDrafts] = useState<Record<PrefKind, string>>({ avoid: '', love: '', note: '' })
   const [busy, setBusy] = useState<PrefKind | string | null>(null)
   const [error, setError] = useState('')
-  const [pending, setPending] = useState<PrefKind | null>(null) // waiting on a GitHub key
+  const [pending, setPending] = useState<((token: string) => void) | null>(null) // waiting on a GitHub key, then runs this
 
   async function run(key: string, action: () => Promise<unknown>) {
     setBusy(key)
@@ -37,7 +38,7 @@ export function Tastes({ prefs, token, setToken }: {
   async function add(kind: PrefKind, withToken = token) {
     const label = drafts[kind].trim()
     if (!label) return
-    if (!withToken) return setPending(kind)
+    if (!withToken) return setPending(() => (t: string) => void add(kind, t))
     if (await run(kind, () => prefs.add(kind, label, withToken))) setDrafts((d) => ({ ...d, [kind]: '' }))
   }
 
@@ -48,9 +49,14 @@ export function Tastes({ prefs, token, setToken }: {
     }
   }
 
-  function remove(p: Preference) {
-    if (!token) return setPending(p.kind)
-    if (window.confirm(`Remove “${p.label}” from ${p.kind === 'avoid' ? 'Never' : p.kind === 'love' ? 'Love' : 'Notes'}?`)) void run(p.id, () => prefs.remove(p.id))
+  function remove(p: Preference, withToken = token) {
+    if (!withToken) return setPending(() => (t: string) => remove(p, t))
+    if (window.confirm(`Remove “${p.label}” from ${p.kind === 'avoid' ? 'Never' : p.kind === 'love' ? 'Love' : 'Notes'}?`)) void run(p.id, () => prefs.remove(p.id, withToken))
+  }
+
+  function unrate(r: Rating, withToken = token) {
+    if (!withToken) return setPending(() => (t: string) => unrate(r, t))
+    void run(r.idea, () => prefs.rate({ slug: r.idea, title: r.title }, null, withToken))
   }
 
   return (
@@ -60,6 +66,7 @@ export function Tastes({ prefs, token, setToken }: {
           <h2 id="tastes-h">Your tastes</h2>
           <p className="section-sub">What you never want, what you love, and anything else to remember. Ideas that include something on the Never list are hidden, and new recipes follow all of it.</p>
         </div>
+        <button type="button" className="btn btn-butter" onClick={onQuiz}>Take the swipe quiz</button>
       </header>
 
       {error && <p className="error" role="alert">{error}</p>}
@@ -100,14 +107,31 @@ export function Tastes({ prefs, token, setToken }: {
         })}
       </div>
 
+      {prefs.ratings.length > 0 && (
+        <div className="rated">
+          <h3>Ideas you rated</h3>
+          <p className="taste-hint">Thumbs-down ideas are hidden. New recipes lean toward the ones you liked.</p>
+          <ul className="rated-list">
+            {[...prefs.ratings].sort((a, b) => (a.thumb === b.thumb ? 0 : a.thumb === 'up' ? -1 : 1)).map((r) => (
+              <li key={r.idea} className={`rated-item rated-${r.thumb}`}>
+                <span aria-hidden="true">{r.thumb === 'up' ? '👍' : '👎'}</span>
+                <span className="visually-hidden">{r.thumb === 'up' ? 'Thumbs up:' : 'Thumbs down:'}</span>
+                <b>{r.title}</b>
+                <button type="button" className="x" aria-label={`Clear rating for ${r.title}`} disabled={busy === r.idea} onClick={() => unrate(r)}>×</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {pending && (
         <Modal label="Connect to GitHub" onClose={() => setPending(null)} className="link-modal">
           <ConnectForm
             onConnected={(t) => {
-              const kind = pending
+              const next = pending
               setToken(t)
               setPending(null)
-              void add(kind, t)
+              next(t)
             }}
           />
         </Modal>

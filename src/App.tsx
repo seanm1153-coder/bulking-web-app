@@ -6,6 +6,7 @@ import { Ideas } from './components/Ideas'
 import { Library } from './components/Library'
 import { LinkDialog } from './components/LinkDialog'
 import { SetupDialog } from './components/SetupDialog'
+import { SwipeQuiz } from './components/SwipeQuiz'
 import { Tastes } from './components/Tastes'
 import { VideoDialog } from './components/VideoDialog'
 import { BOOSTERS, boosterText, IDEAS, ideaText, type Idea } from './data/ideas'
@@ -40,14 +41,23 @@ export default function App() {
   const api = useLinks(token, setToken)
   const prefs = usePreferences(token)
 
-  // Leave out anything that mentions a food on the Never list.
+  // Leave out anything that mentions a food on the Never list, and ideas
+  // you gave a thumbs down.
+  const { avoid, prefs: prefList, ratings } = prefs
   const { ideas, boosters, hidden } = useMemo(() => {
-    const ok = (text: string) => !prefs.avoid?.test(text)
-    const ideas = IDEAS.filter((i) => ok(ideaText(i)))
-    const left = IDEAS.filter((i) => !ideas.includes(i))
-    const labels = [...new Set(left.flatMap((i) => avoidedIn(ideaText(i), prefs.prefs).map((p) => p.label)))]
-    return { ideas, boosters: BOOSTERS.filter((b) => ok(boosterText(b))), hidden: { count: left.length, labels } }
-  }, [prefs.avoid, prefs.prefs])
+    const ok = (text: string) => !avoid?.(text)
+    const down = new Set(ratings.filter((r) => r.thumb === 'down').map((r) => r.idea))
+    const allowed = IDEAS.filter((i) => ok(ideaText(i)))
+    const left = IDEAS.filter((i) => !allowed.includes(i))
+    const labels = [...new Set(left.flatMap((i) => avoidedIn(ideaText(i), prefList).map((p) => p.label)))]
+    const ideas = allowed.filter((i) => !down.has(i.slug))
+    return {
+      ideas,
+      boosters: BOOSTERS.filter((b) => ok(boosterText(b))),
+      hidden: { count: left.length, labels, down: allowed.length - ideas.length },
+    }
+  }, [avoid, prefList, ratings])
+  const liked = useMemo(() => new Set(ratings.filter((r) => r.thumb === 'up').map((r) => r.idea)), [ratings])
   const feedMe = (except?: Idea) => {
     const next = randomIdea(ideas, except)
     setIdea(next ? { idea: next, random: true } : null)
@@ -58,6 +68,7 @@ export default function App() {
     return url ? { url } : null
   })
   const [setupOpen, setSetupOpen] = useState(false)
+  const [quizOpen, setQuizOpen] = useState(false)
   const [video, setVideo] = useState<Link | null>(null)
 
   // Drop ?add= from the address bar once it has been read, so a reload
@@ -131,9 +142,9 @@ export default function App() {
 
       <main className="wrap" id="top">
         <Hero onIdea={() => feedMe()} onSave={() => setLinkForm({})} />
-        <Ideas ideas={ideas} hidden={hidden} onOpen={(i) => setIdea({ idea: i, random: false })} />
+        <Ideas ideas={ideas} hidden={hidden} liked={liked} onOpen={(i) => setIdea({ idea: i, random: false })} />
         <Boosters boosters={boosters} />
-        <Tastes prefs={prefs} token={token} setToken={setToken} />
+        <Tastes prefs={prefs} token={token} setToken={setToken} onQuiz={() => setQuizOpen(true)} />
         <Library
           api={api}
           onAdd={() => setLinkForm({})}
@@ -157,11 +168,15 @@ export default function App() {
           key={idea.idea.slug}
           idea={idea.idea}
           boosters={boosters}
+          prefs={prefs}
+          token={token}
+          setToken={setToken}
           onClose={() => setIdea(null)}
           onAnother={idea.random ? () => feedMe(idea.idea) : undefined}
         />
       )}
       {linkForm && <LinkDialog api={api} initialUrl={linkForm.url} editing={linkForm.editing} onClose={() => setLinkForm(null)} />}
+      {quizOpen && <SwipeQuiz prefs={prefs} token={token} setToken={setToken} onClose={() => setQuizOpen(false)} />}
       {setupOpen && <SetupDialog api={api} onClose={() => setSetupOpen(false)} />}
       {video && <VideoDialog link={video} onClose={() => setVideo(null)} />}
     </>
