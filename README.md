@@ -10,7 +10,7 @@ A home base for eating more on purpose: big meal ideas, calorie boosters, your f
 - **Boosters.** Ten easy add-ons (peanut butter, whole milk, olive oil, butter…) with what each one adds.
 - **Your tastes.** Foods you never want, foods you love, and notes. Ideas and boosters that mention anything on the Never list are hidden, and new recipes are written to follow all of it.
 - **Swipe quiz.** About 30 food stickers to swipe right (love), left (never) or up (fine either way), then save in one go. Foods already in your tastes are skipped. Start it from **Your tastes**.
-- **Thumbs.** 👎 on any idea card (or in its recipe) hides it and asks why: quick reasons like *Too sweet* or *Too much work*, foods in it to add to Never, and an optional note. 👍 in a recipe offers the foods in it as one-tap Love picks. When a pattern shows up across your thumbs (the same reason twice, or a food in two ideas you turned down), **Your tastes** suggests it as a Note, Never or Love.
+- **Thumbs.** 👎 in any recipe hides it and asks why: quick reasons like *Too sweet* or *Too much work*, foods in it to add to Never, and an optional note. 👍 in a recipe offers the foods in it as one-tap Love picks. When a pattern shows up across your thumbs (the same reason twice, or a food in two ideas you turned down), **Your tastes** suggests it as a Note, Never or Love.
 - **Saved.** Videos, recipes and posts you've saved, with categories, notes, favorites and search. YouTube videos play in place; everything else opens in a new tab.
 
 Calorie and protein numbers are rough estimates.

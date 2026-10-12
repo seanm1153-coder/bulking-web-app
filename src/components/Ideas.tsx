@@ -14,14 +14,12 @@ const ORDERS: { id: Order; label: string }[] = [
 ]
 
 // `ideas` is already filtered by preferences and thumbs down; `hidden` says
-// what was left out. `liked` is the slugs with a thumbs up. The 👎 on a card
-// calls `onNope`.
-export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
+// what was left out. `liked` is the slugs with a thumbs up.
+export function Ideas({ ideas, hidden, liked, onOpen }: {
   ideas: Idea[]
   hidden: { count: number; labels: string[]; down: number }
   liked: Set<string>
   onOpen: (idea: Idea) => void
-  onNope: (idea: Idea) => void
 }) {
   const [filter, setFilter] = useState<IdeaCategory | 'all'>('all')
   const [aheadOnly, setAheadOnly] = useState(false) // on top of the category
@@ -68,11 +66,9 @@ export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
 
       <div className="idea-grid">
         {shown.map((idea, n) => (
-          // The open button stretches over the whole card (see .idea-open);
-          // the 👎 sits on top of it.
+          // The open button stretches over the whole card (see .idea-open).
           <article key={idea.slug} className="idea-card" style={{ background: CARD_COLORS[n % CARD_COLORS.length] }}>
             {liked.has(idea.slug) && <span className="liked-tag">👍 Liked</span>}
-            <button type="button" className="nope-btn" aria-label={`Thumbs down: ${idea.title}`} title="Not for me" onClick={() => onNope(idea)}>👎</button>
             <Sticker name={idea.sticker} palette={idea.palette} tilt={TILTS[n % TILTS.length]} />
             {idea.ahead && (
               <span className="keeps-tag">

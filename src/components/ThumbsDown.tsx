@@ -102,19 +102,3 @@ export function ThumbsDownForm({ idea, prefs, token, setToken, onDone, onCancel 
   )
 }
 
-// The 👎 on an idea card opens this.
-export function ThumbsDownDialog({ idea, onClose, ...rest }: Omit<Parameters<typeof ThumbsDownForm>[0], 'onDone' | 'onCancel'> & { onClose: () => void }) {
-  return (
-    <Modal label={`Thumbs down: ${idea.title}`} onClose={onClose} className="nope-modal">
-      <div className="nope-head">
-        <Sticker name={idea.sticker} palette={idea.palette} tilt={6} className="pop" />
-        <div>
-          <p className="kicker">👎 Not for you</p>
-          <h2>{idea.title}</h2>
-        </div>
-      </div>
-      <p className="nope-sub">Hiding it takes it off Ideas and Feed me. Saying why is optional, and it shapes your tastes and new recipes.</p>
-      <ThumbsDownForm idea={idea} {...rest} onDone={onClose} onCancel={onClose} />
-    </Modal>
-  )
-}
