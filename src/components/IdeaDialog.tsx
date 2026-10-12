@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { foodsIn, type Food } from '../data/foods'
-import { CLEAN_LEVELS, IDEA_CATEGORIES, ideaText, KEEPS, type Ahead, type Booster, type BoosterId, type Idea } from '../data/ideas'
+import { CLEAN_LEVELS, IDEA_CATEGORIES, ideaText, KEEPS, tweakIdea, type Ahead, type Booster, type BoosterId, type Idea, type Line, type Tweaked } from '../data/ideas'
 import type { Thumb } from '../lib/preferences'
 import type { PreferencesApi } from '../lib/usePreferences'
 import { Sticker } from '../stickers/Sticker'
@@ -20,13 +20,16 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   anotherLabel?: string
 }) {
   const [picked, setPicked] = useState<BoosterId[]>([])
+  const [notch, setNotch] = useState(0) // on the clean-or-dirty slider; 0 is as written
   const category = IDEA_CATEGORIES.find((c) => c.id === idea.category)?.label
 
   // Suggested boosters first, then the rest.
   const boosters = [...all.filter((b) => idea.boost.includes(b.id)), ...all.filter((b) => !idea.boost.includes(b.id))]
   const added = all.filter((b) => picked.includes(b.id))
-  const kcal = idea.kcal + added.reduce((n, b) => n + b.kcal, 0)
-  const protein = idea.protein + added.reduce((n, b) => n + b.protein, 0)
+  const boostKcal = added.reduce((n, b) => n + b.kcal, 0)
+  const tweaked = tweakIdea(idea, notch)
+  const kcal = tweaked.kcal + boostKcal
+  const protein = tweaked.protein + added.reduce((n, b) => n + b.protein, 0)
   const batchFirst = !!idea.ahead && !idea.ahead.batch // the recipe itself is the batch
   const toggle = (id: BoosterId) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
 
@@ -52,32 +55,23 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
           </p>
         )}
 
-        <div className={`clean-box clean-${idea.clean.score}`}>
-          <p className="clean-scale">
-            <span>Dirty</span> <CleanMeter score={idea.clean.score} big /> <span>Clean</span>
-            <b>{CLEAN_LEVELS[idea.clean.score]}</b>
-          </p>
-          <p>{idea.clean.why}</p>
-          {idea.clean.swaps && (
-            <p className="clean-swaps"><b>Make it cleaner:</b> {idea.clean.swaps.join(' ')}</p>
-          )}
-        </div>
+        <CleanSlider idea={idea} notch={notch} setNotch={setNotch} tweaked={tweaked} boosters={boosters} />
 
         <div className="recipe">
           <div>
             <h3>You need{batchFirst && <span className="plus">makes {idea.ahead!.makes}</span>}</h3>
-            <ul>{idea.ingredients.map((x) => <li key={x}>{x}</li>)}</ul>
+            <ul>{tweaked.ingredients.map((l, i) => <RecipeLine key={i} line={l} />)}</ul>
           </div>
           <div>
             <h3>Do this</h3>
-            <ol>{idea.steps.map((x) => <li key={x}>{x}</li>)}</ol>
+            <ol>{tweaked.steps.filter((l) => !l.gone).map((l, i) => <RecipeLine key={i} line={l} />)}</ol>
           </div>
         </div>
 
-        {idea.ahead && <MakeAhead ahead={idea.ahead} kcal={kcal} />}
+        {idea.ahead && <MakeAhead ahead={idea.ahead} kcal={idea.kcal + boostKcal} tweaked={notch !== 0} />}
 
         <div className="make-bigger">
-          <h3>Make it bigger {added.length > 0 && <span className="plus">+{(kcal - idea.kcal).toLocaleString()} kcal</span>}</h3>
+          <h3>Make it bigger {added.length > 0 && <span className="plus">+{boostKcal.toLocaleString()} kcal</span>}</h3>
           <div className="boost-chips" role="group" aria-label="Add boosters">
             {boosters.map((b) => (
               <button key={b.id} type="button" className="boost-chip" aria-pressed={picked.includes(b.id)} onClick={() => toggle(b.id)}>
@@ -97,10 +91,77 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   )
 }
 
+const orList = (items: string[]) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} or ${items.at(-1)}`)
+const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : '±'}${Math.abs(n).toLocaleString()}`
+const CLEAN_BOOSTERS: BoosterId[] = ['oil', 'avocado', 'nuts']
+
+// Where the recipe sits from dirty to clean, and a slider that changes it:
+// each notch is one of the idea's tweaks, applied to the recipe below.
+function CleanSlider({ idea, notch, setNotch, tweaked, boosters }: {
+  idea: Idea
+  notch: number
+  setNotch: (n: number) => void
+  tweaked: Tweaked
+  boosters: Booster[]
+}) {
+  const min = -(idea.clean.dirtier?.length ?? 0)
+  const max = idea.clean.cleaner?.length ?? 0
+  const kcal = tweaked.kcal - idea.kcal
+  const protein = tweaked.protein - idea.protein
+  // Cleaner usually means fewer calories; point at the clean way back up.
+  const makeUp = notch > 0 && kcal <= -50
+    ? boosters.filter((b) => CLEAN_BOOSTERS.includes(b.id)).map((b) => b.name.toLowerCase())
+    : []
+
+  return (
+    <div className={`clean-box clean-${tweaked.score}`}>
+      <p className="clean-scale">
+        <CleanMeter score={tweaked.score} big /> <b>{CLEAN_LEVELS[tweaked.score]}</b>
+        {notch !== 0 && <button type="button" className="link-btn" onClick={() => setNotch(0)}>Back to as written</button>}
+      </p>
+      {min < max && (
+        <div className="clean-slider">
+          <span className="clean-end-dirty" aria-hidden="true">Dirtier</span>
+          <div className="clean-track">
+            <input type="range" min={min} max={max} step={1} value={notch} onChange={(e) => setNotch(Number(e.target.value))}
+              aria-label="Make it dirtier or cleaner"
+              aria-valuetext={`${CLEAN_LEVELS[tweaked.score]}${notch === 0 ? ', as written' : `: ${tweaked.says.join(', ')}`}`} />
+            <div className="clean-ticks" aria-hidden="true">
+              {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((n) => (
+                <span key={n} className={n === 0 ? 'as-written' : undefined}>{n === 0 && 'as written'}</span>
+              ))}
+            </div>
+          </div>
+          <span className="clean-end-clean" aria-hidden="true">Cleaner</span>
+        </div>
+      )}
+      {notch === 0 ? (
+        <p>{idea.clean.why}</p>
+      ) : (
+        <>
+          <p><b>{notch > 0 ? 'Cleaner' : 'Dirtier'}:</b> {tweaked.says.join(' · ')}.</p>
+          <p className="clean-delta">
+            {signed(kcal)} kcal and {signed(protein)} g protein compared with the recipe as written.
+            {makeUp.length > 0 && ` Win them back with ${orList(makeUp)} from Make it bigger.`}
+          </p>
+        </>
+      )}
+    </div>
+  )
+}
+
+// An ingredient or step, marked when the slider changed or dropped it.
+function RecipeLine({ line }: { line: Line }) {
+  if (line.gone) return <li className="line-gone">{line.text}<span className="visually-hidden"> (left out)</span></li>
+  if (line.changed) return <li><span className="line-changed">{line.text}</span><span className="visually-hidden"> (changed)</span></li>
+  return <li>{line.text}</li>
+}
+
 // How to make it ahead: the batch (unless the recipe above already is one),
 // how long it keeps, how to eat it, and what to add fresh. The total counts
-// any boosters picked, since they go on every portion.
-function MakeAhead({ ahead, kcal }: { ahead: Ahead; kcal: number }) {
+// any boosters picked, since they go on every portion, but not the slider:
+// the batch is the recipe as written.
+function MakeAhead({ ahead, kcal, tweaked }: { ahead: Ahead; kcal: number; tweaked: boolean }) {
   const keeps = KEEPS[ahead.keeps]
   return (
     <section className={`ahead ahead-${ahead.keeps}`} aria-label="Make ahead">
@@ -125,6 +186,7 @@ function MakeAhead({ ahead, kcal }: { ahead: Ahead; kcal: number }) {
         <div><dt>To eat</dt><dd>{ahead.eat}</dd></div>
         {ahead.fresh && <div><dt>Add fresh</dt><dd>{ahead.fresh.join(', ')}</dd></div>}
       </dl>
+      {tweaked && ahead.batch && <p className="ahead-note">The batch is the recipe as written. Make the same swaps if you like.</p>}
     </section>
   )
 }

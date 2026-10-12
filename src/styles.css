@@ -248,33 +248,14 @@ img { display: block; max-width: 100%; }
 .idea-card:has(.idea-open:focus-visible) { outline: 3px solid var(--cobalt); outline-offset: 3px; }
 .idea-card .sticker { width: 76%; margin: 0 auto 12px; }
 /* The title is the button; its ::after stretches over the card so a click
-   anywhere opens the recipe. The 👎 sits above it. */
+   anywhere opens the recipe. */
 .idea-open { padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
 .idea-open::after { content: ""; position: absolute; inset: 0; border-radius: 29px; }
 .idea-open:focus-visible { outline: none; }
-.nope-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 2.5px solid var(--ink);
-  border-radius: 50%;
-  background: var(--white);
-  box-shadow: 2px 2px 0 var(--ink);
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform 150ms var(--pop), background-color 150ms ease;
-}
-.nope-btn:hover { background: var(--tomato); transform: rotate(10deg) scale(1.08); }
 .liked-tag {
   position: absolute;
   top: 14px;
-  left: 14px;
+  right: 14px;
   z-index: 1;
   pointer-events: none;
   padding: 3px 11px;
@@ -284,7 +265,7 @@ img { display: block; max-width: 100%; }
   box-shadow: 2px 2px 0 var(--ink);
   font-weight: 800;
   font-size: 14px;
-  transform: rotate(-6deg);
+  transform: rotate(6deg);
 }
 .idea-title {
   margin-top: auto;
@@ -665,8 +646,42 @@ body.is-dropping .drop-hint { display: grid; }
 .clean-box { margin-top: 18px; padding: 14px 18px; border: 2.5px solid var(--ink); border-radius: 20px; background: var(--white); font-size: 16px; }
 .clean-scale { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 8px; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .clean-scale b { margin-left: 6px; font-weight: 800; font-size: 19px; letter-spacing: 0; text-transform: none; color: var(--ink); }
-.clean-swaps { margin-top: 6px; color: var(--muted); }
-.clean-swaps b { color: var(--ink); }
+.clean-scale .link-btn { margin-left: auto; font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.clean-box > p + p { margin-top: 6px; }
+.clean-delta { font-size: 15px; color: var(--muted); }
+
+/* The slider: a flat track colored by where the recipe sits now, a sticker
+   thumb, and a tick per notch. The ticks are inset by half the thumb so they
+   line up with where it stops. */
+.clean-slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "dirty track clean"; align-items: start; gap: 0 12px; margin: 4px 0 12px; font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.clean-slider > span { padding-top: 8px; }
+.clean-end-dirty { grid-area: dirty; }
+.clean-end-clean { grid-area: clean; text-align: right; }
+.clean-track { grid-area: track; }
+/* On a phone the track gets the full width and the ends go underneath. */
+@media (max-width: 560px) {
+  .clean-slider { grid-template-columns: 1fr 1fr; grid-template-areas: "track track" "dirty clean"; }
+  .clean-slider > span { padding-top: 0; margin-top: 4px; }
+}
+.clean-track input { -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 16px; margin: 7px 0 0; border: 2.5px solid var(--ink); border-radius: 999px; background: var(--paper); cursor: pointer; }
+.clean-1 .clean-track input, .clean-2 .clean-track input { background: var(--tomato); }
+.clean-3 .clean-track input { background: var(--butter); }
+.clean-4 .clean-track input, .clean-5 .clean-track input { background: var(--mint); }
+.clean-track input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border: 3px solid var(--ink); border-radius: 50%; background: var(--white); box-shadow: 2px 2px 0 var(--ink); }
+.clean-track input::-moz-range-thumb { box-sizing: border-box; width: 30px; height: 30px; border: 3px solid var(--ink); border-radius: 50%; background: var(--white); box-shadow: 2px 2px 0 var(--ink); }
+.clean-track input:focus { outline: none; }
+.clean-track input:focus-visible::-webkit-slider-thumb { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.clean-track input:focus-visible::-moz-range-thumb { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.clean-ticks { display: flex; justify-content: space-between; height: 26px; padding: 0 13px; margin-top: 8px; }
+.clean-ticks span { position: relative; display: flex; justify-content: center; width: 4px; }
+.clean-ticks span::before { content: ""; width: 4px; height: 8px; border-radius: 2px; background: var(--ink); }
+.clean-ticks .as-written { font-size: 11px; white-space: nowrap; color: var(--ink); }
+.clean-ticks .as-written::before { position: absolute; top: 0; }
+.clean-ticks .as-written { padding-top: 11px; }
+
+.line-changed { padding: 1px 5px; margin-left: -5px; border-radius: 5px; background: var(--butter); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.line-gone { color: var(--muted); text-decoration: line-through; }
+.ahead-note { margin-top: 10px; font-size: 14px; font-weight: 600; }
 .recipe { display: grid; grid-template-columns: 1fr 1.3fr; gap: 28px; margin: 26px 0; padding: 22px 0; border-block: 2.5px solid var(--ink); }
 .recipe ul, .recipe ol { margin: 10px 0 0; padding-left: 20px; }
 .recipe li { margin-bottom: 6px; font-size: 16.5px; }
@@ -739,20 +754,10 @@ body.is-dropping .drop-hint { display: grid; }
 .food-avoid:hover, .food-avoid[aria-pressed="true"] { background: var(--tomato); }
 
 /* Thumbs down: why */
-.nope-modal { width: min(640px, calc(100vw - 32px)); }
-.nope-head { display: flex; align-items: center; gap: 18px; }
-.nope-head .sticker { flex: none; width: 96px; }
-.nope-head h2 { margin-top: 4px; font-size: 40px; }
-.nope-sub { margin-top: 14px; font-size: 16px; color: var(--muted); }
-.nope { display: flex; flex-direction: column; gap: 18px; margin-top: 20px; }
-.thumbs-more .nope { margin-top: 0; }
+.nope { display: flex; flex-direction: column; gap: 18px; }
 .nope-group { margin: 0; padding: 0; border: 0; min-width: 0; }
 .nope-group legend { padding: 0; margin-bottom: 10px; font-weight: 700; font-size: 15px; }
 .nope-group .boost-chips { margin: 0; }
-@media (max-width: 640px) {
-  .nope-head .sticker { width: 72px; }
-  .nope-head h2 { font-size: 32px; }
-}
 @media (max-width: 860px) {
   .idea-modal .modal-inner { grid-template-columns: minmax(0, 1fr); }
   .stat-row .badge { width: 104px; height: 104px; }

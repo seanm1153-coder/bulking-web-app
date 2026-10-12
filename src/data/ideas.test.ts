@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import saved from '../../public/data/preferences.json'
 import { avoidMatcher, parsePreferences } from '../lib/preferences'
 import { STICKERS } from '../stickers/shapes'
-import { BOOSTERS, boosterText, IDEAS, ideaText, isClean, KEEPS } from './ideas'
+import { BOOSTERS, boosterText, IDEAS, ideaText, isClean, KEEPS, tweakIdea } from './ideas'
 
 // The written recipes must follow the saved preferences, so nothing on the
 // Never list sneaks back in when ideas are added or edited.
@@ -23,6 +23,37 @@ describe('ideas follow preferences.json', () => {
   })
 })
 
+describe('tweakIdea', () => {
+  const burger = IDEAS.find((i) => i.slug === 'smash-burger')!
+
+  it('leaves the recipe as written at 0', () => {
+    const t = tweakIdea(burger, 0)
+    expect(t).toMatchObject({ score: burger.clean.score, kcal: burger.kcal, protein: burger.protein, says: [] })
+    expect(t.ingredients.map((l) => l.text)).toEqual(burger.ingredients)
+    expect(t.ingredients.some((l) => l.changed || l.gone)).toBe(false)
+  })
+
+  it('applies notches in order, swapping lines in place and adding up the change', () => {
+    const t = tweakIdea(burger, 2)
+    const [a, b] = burger.clean.cleaner!
+    expect(t.score).toBe(b.to)
+    expect(t.kcal).toBe(burger.kcal + a.kcal + b.kcal)
+    expect(t.ingredients[0]).toEqual({ text: '6 oz 90/10 ground beef, as two balls', changed: true })
+    expect(t.steps.at(-1)?.text).toContain('tomato')
+  })
+
+  it('goes dirtier with negative notches, adding lines at the end', () => {
+    const t = tweakIdea(burger, -1)
+    expect(t.score).toBe(1)
+    expect(t.ingredients.at(-1)).toEqual({ text: '3 strips bacon', changed: true })
+  })
+
+  it('marks dropped lines rather than losing them', () => {
+    const oats = IDEAS.find((i) => i.slug === 'overnight-oats')!
+    expect(tweakIdea(oats, 1).ingredients.find((l) => l.text === '1 tbsp honey')).toEqual({ text: '1 tbsp honey', gone: true })
+  })
+})
+
 describe('ideas data', () => {
   it('has unique slugs, real stickers and boosters that exist', () => {
     expect(new Set(IDEAS.map((i) => i.slug)).size).toBe(IDEAS.length)
@@ -40,6 +71,26 @@ describe('ideas data', () => {
     }
     expect(IDEAS.filter(isClean).length).toBeGreaterThanOrEqual(5)
     expect(IDEAS.filter((i) => i.clean.score <= 2).length).toBeGreaterThanOrEqual(5)
+  })
+
+  it('gives every idea notches that move one way, and something cleaner unless it’s already Clean', () => {
+    for (const { slug, clean } of IDEAS) {
+      if (clean.score < 5) expect(clean.cleaner?.length, slug).toBeGreaterThan(0)
+      const up = [clean.score, ...(clean.cleaner ?? []).map((t) => t.to)]
+      const down = [clean.score, ...(clean.dirtier ?? []).map((t) => t.to)]
+      up.slice(1).forEach((to, i) => expect(to, `${slug} cleaner ${i + 1}`).toBeGreaterThan(up[i]))
+      down.slice(1).forEach((to, i) => expect(to, `${slug} dirtier ${i + 1}`).toBeLessThan(down[i]))
+    }
+  })
+
+  it('finds every line a notch swaps, at every notch', () => {
+    for (const idea of IDEAS) {
+      for (let n = -(idea.clean.dirtier?.length ?? 0); n <= (idea.clean.cleaner?.length ?? 0); n++) {
+        const t = tweakIdea(idea, n)
+        expect(t.missing, `${idea.slug} at ${n}`).toEqual([])
+        expect(t.kcal, `${idea.slug} at ${n}`).toBeGreaterThan(300)
+      }
+    }
   })
 
   it('gives every make-ahead idea a batch size, storage and reheating', () => {
