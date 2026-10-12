@@ -602,9 +602,10 @@ export const IDEAS: Idea[] = [
             ['Stretch the dough, add sauce, cheese and pepperoni.', 'Stretch the dough, add sauce, cheese, chicken and onion.'],
           ],
         },
-        { to: 4, says: 'Whole-wheat dough, part-skim mozzarella and a side salad', kcal: 90, protein: 6, carbs: -2, fat: 10,
+        { to: 4, says: 'Greek yogurt dough, part-skim mozzarella and a side salad', kcal: -5, protein: 12, carbs: -22, fat: 4,
           swap: [
-            ['Pizza dough', 'Whole-wheat pizza dough'],
+            ['Pizza dough', 'Dough: 1½ cups self-rising flour and 1½ cups nonfat Greek yogurt'],
+            ['Heat the oven as hot as it goes.', 'Heat the oven as hot as it goes. Stir the flour and yogurt into a shaggy dough, knead it for a minute on a floured counter and let it rest 10 minutes.'],
             ['1½ cups mozzarella', '1½ cups part-skim mozzarella'],
             ['Bake until bubbling and spotted. Eat three slices.', 'Bake until bubbling and spotted. Eat three slices with the salad.'],
           ],
