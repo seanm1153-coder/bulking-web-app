@@ -199,6 +199,20 @@
       "kind": "love",
       "label": "Bread",
       "added": "2026-10-11"
+    },
+    {
+      "id": "love-cottage-cheese-sauces-5c1e",
+      "kind": "love",
+      "label": "Cottage cheese sauces",
+      "detail": "Blended cottage cheese sauces, StealthHealthLife-style: creamy, cheesy and high in protein.",
+      "added": "2026-10-12"
+    },
+    {
+      "id": "note-cottage-cheese-vs-greek-yogurt-8a42",
+      "kind": "note",
+      "label": "Cottage cheese for creamy sauces; Greek yogurt for sour cream and dips",
+      "detail": "Alfredo and other creamy or cheesy pasta sauces get blended cottage cheese, never Greek yogurt. Greek yogurt is a good stand-in for sour cream, mayo-based sauces, dips and dressings.",
+      "added": "2026-10-12"
     }
   ],
   "ratings": []
