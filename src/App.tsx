@@ -162,7 +162,7 @@ export default function App() {
       <footer className="foot">
         <div className="wrap foot-inner">
           <span>Surplus · eat more, on purpose</span>
-          <span>Calories are rough estimates. Stickers are drawn in code.</span>
+          <span>Calories and macros are rough estimates. Stickers are drawn in code.</span>
         </div>
       </footer>
 

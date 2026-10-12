@@ -29,7 +29,7 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   const boostKcal = added.reduce((n, b) => n + b.kcal, 0)
   const tweaked = tweakIdea(idea, notch)
   const kcal = tweaked.kcal + boostKcal
-  const protein = tweaked.protein + added.reduce((n, b) => n + b.protein, 0)
+  const sum = (key: 'protein' | 'carbs' | 'fat') => tweaked[key] + added.reduce((n, b) => n + b[key], 0)
   const batchFirst = !!idea.ahead && !idea.ahead.batch // the recipe itself is the batch
   const toggle = (id: BoosterId) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
 
@@ -42,7 +42,9 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
         </div>
         <div className="stat-row" aria-live="polite">
           <span className="badge"><b>{kcal.toLocaleString()}</b>{batchFirst ? 'kcal each' : 'kcal'}</span>
-          <span className="badge badge-pink"><b>{protein}g</b>protein</span>
+          <span className="badge badge-pink"><b>{sum('protein')}g</b>protein</span>
+          <span className="badge badge-sky"><b>{sum('carbs')}g</b>carbs</span>
+          <span className="badge badge-mint"><b>{sum('fat')}g</b>fat</span>
         </div>
       </div>
       <div className="idea-body">
@@ -84,7 +86,7 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
 
         <Thumbs idea={idea} prefs={prefs} token={token} setToken={setToken} />
 
-        <p className="fine">Calories and protein are rough estimates.</p>
+        <p className="fine">Calories and macros are rough estimates.</p>
         {onAnother && <button type="button" className="btn btn-tomato" onClick={onAnother}>{anotherLabel}</button>}
       </div>
     </Modal>
@@ -107,7 +109,7 @@ function CleanSlider({ idea, notch, setNotch, tweaked, boosters }: {
   const min = -(idea.clean.dirtier?.length ?? 0)
   const max = idea.clean.cleaner?.length ?? 0
   const kcal = tweaked.kcal - idea.kcal
-  const protein = tweaked.protein - idea.protein
+  const grams = (['protein', 'carbs', 'fat'] as const).map((key) => `${signed(tweaked[key] - idea[key])} g ${key}`)
   // Cleaner usually means fewer calories; point at the clean way back up.
   const makeUp = notch > 0 && kcal <= -50
     ? boosters.filter((b) => CLEAN_BOOSTERS.includes(b.id)).map((b) => b.name.toLowerCase())
@@ -141,7 +143,7 @@ function CleanSlider({ idea, notch, setNotch, tweaked, boosters }: {
         <>
           <p><b>{notch > 0 ? 'Cleaner' : 'Dirtier'}:</b> {tweaked.says.join(' · ')}.</p>
           <p className="clean-delta">
-            {signed(kcal)} kcal and {signed(protein)} g protein compared with the recipe as written.
+            {signed(kcal)} kcal · {grams.join(' · ')} compared with the recipe as written.
             {makeUp.length > 0 && ` Win them back with ${orList(makeUp)} from Make it bigger.`}
           </p>
         </>

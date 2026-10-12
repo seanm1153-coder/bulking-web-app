@@ -16,6 +16,7 @@ export function Boosters({ boosters }: { boosters: Booster[] }) {
             <Sticker name={b.sticker} palette={b.palette} tilt={i % 2 ? 6 : -6} />
             <p className="boost-kcal"><b>+{b.kcal}</b> kcal</p>
             <h3>{b.name} <span>{b.amount}</span></h3>
+            <p className="boost-macros">{b.protein} g protein · {b.carbs} g carbs · {b.fat} g fat</p>
             <p>{b.tip}</p>
           </article>
         ))}
