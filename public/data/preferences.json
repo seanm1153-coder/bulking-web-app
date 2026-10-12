@@ -215,5 +215,11 @@
       "added": "2026-10-12"
     }
   ],
-  "ratings": []
+  "ratings": [],
+  "goals": {
+    "kcal": 2600,
+    "protein": 160,
+    "carbs": 300,
+    "fat": 85
+  }
 }
