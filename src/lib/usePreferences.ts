@@ -1,18 +1,19 @@
 import { useMemo } from 'react'
 import { DATA_FILES } from '../config'
-import { addPreferences, avoidMatcher, newPreference, parsePreferences, rate, type Feedback, type Preference, type PrefKind, type Thumb } from './preferences'
+import { addPreferences, avoidMatcher, cleanGoals, newPreference, parsePreferences, rate, type Feedback, type Goals, type Preference, type PrefKind, type Thumb } from './preferences'
 import { useRepoFile } from './useRepoFile'
 
 const VERBS: Record<PrefKind, string> = { avoid: 'Avoid', love: 'Love', note: 'Note' }
 
 export function usePreferences(token: string) {
   const file = useRepoFile(token, DATA_FILES.preferences, parsePreferences)
-  const { preferences: prefs, ratings } = file.data
+  const { preferences: prefs, ratings, goals = {} } = file.data
   const avoid = useMemo(() => avoidMatcher(prefs), [prefs])
 
   return {
     prefs,
     ratings,
+    goals,
     avoid,
     status: file.status,
     error: file.error,
@@ -32,6 +33,15 @@ export function usePreferences(token: string) {
     rate: (idea: { slug: string; title: string }, thumb: Thumb | null, withToken?: string) => {
       const message = thumb ? `Thumbs ${thumb}: ${idea.title}` : `Clear rating: ${idea.title}`
       return file.commit((d) => ({ ...d, ratings: rate(d.ratings, idea, thumb) }), message, withToken)
+    },
+    // Replaces the daily goals; empty ones are left out.
+    setGoals: (next: Goals, withToken?: string) => {
+      const clean = cleanGoals(next)
+      const parts = [clean.kcal && `${clean.kcal.toLocaleString()} kcal`, ...(['protein', 'carbs', 'fat'] as const).map((k) => clean[k] && `${clean[k]} g ${k}`)].filter(Boolean)
+      return file.commit((d) => {
+        const { goals: _old, ...rest } = d
+        return Object.keys(clean).length ? { ...rest, goals: clean } : rest
+      }, parts.length ? `Daily goals: ${parts.join(', ')}` : 'Clear daily goals', withToken)
     },
     // A thumbs down with the why behind it, and any foods from it to add to
     // Never, in one commit.

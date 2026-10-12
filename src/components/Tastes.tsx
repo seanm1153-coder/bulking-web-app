@@ -1,7 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react'
 import { asPreference } from '../data/foods'
 import { hintDetail, tasteHints, type Hint } from '../data/hints'
-import type { PrefKind, Preference, Rating } from '../lib/preferences'
+import { MACROS, type PrefKind, type Preference, type Rating } from '../lib/preferences'
 import type { PreferencesApi } from '../lib/usePreferences'
 import { Sticker } from '../stickers/Sticker'
 import { ConnectForm } from './ConnectForm'
@@ -38,11 +38,12 @@ const COLUMN_TITLE: Record<PrefKind, string> = { avoid: 'Never', love: 'Love', n
 // A rating's why, for the list: "Too sweet · “too much like dessert”".
 const whyOf = (r: Rating) => [...(r.reasons ?? []), r.note && `“${r.note}”`].filter(Boolean).join(' · ')
 
-export function Tastes({ prefs, token, setToken, onQuiz }: {
+export function Tastes({ prefs, token, setToken, onQuiz, onGoals }: {
   prefs: PreferencesApi
   token: string
   setToken: (token: string) => void
   onQuiz: () => void
+  onGoals: () => void
 }) {
   const [drafts, setDrafts] = useState<Record<PrefKind, string>>({ avoid: '', love: '', note: '' })
   const [busy, setBusy] = useState<PrefKind | string | null>(null)
@@ -116,6 +117,16 @@ export function Tastes({ prefs, token, setToken, onQuiz }: {
 
       {error && <p className="error" role="alert">{error}</p>}
       {prefs.status === 'error' && <p className="error" role="alert">{prefs.error}</p>}
+
+      <div className="goals-bar">
+        <b>Daily goals</b>
+        {MACROS.some((m) => prefs.goals[m]) ? (
+          <span>{MACROS.filter((m) => prefs.goals[m]).map((m) => `${prefs.goals[m]!.toLocaleString()} ${m === 'kcal' ? 'kcal' : `g ${m}`}`).join(' · ')}</span>
+        ) : (
+          <span className="muted">Not set. Set them and every recipe shows what share of your day it is.</span>
+        )}
+        <button type="button" className="btn btn-quiet" onClick={onGoals}>{MACROS.some((m) => prefs.goals[m]) ? 'Edit' : 'Set goals'}</button>
+      </div>
 
       <div className="taste-cols">
         {COLUMNS.map((col) => {
