@@ -97,6 +97,7 @@ img { display: block; max-width: 100%; }
 .btn-tomato { background: var(--tomato); }
 .btn-cream { background: var(--cream); }
 .btn-butter { background: var(--butter); }
+.btn-mint { background: var(--mint); }
 .btn-quiet { background: var(--white); box-shadow: 3px 3px 0 var(--ink); padding: 9px 18px; font-size: 16px; }
 
 .pills { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -117,6 +118,11 @@ img { display: block; max-width: 100%; }
 .pill-n { font-weight: 600; font-size: 14px; opacity: 0.6; }
 .pill-radio input { position: absolute; opacity: 0; pointer-events: none; }
 .pill-radio:has(input:focus-visible) { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.pill-select { position: relative; padding-right: 32px; }
+.pill-select::after { content: "▾"; position: absolute; right: 13px; pointer-events: none; }
+.pill-select select { appearance: none; padding: 0; border: 0; background: transparent; font-weight: 700; cursor: pointer; }
+.pill-select select:focus { outline: none; }
+.pill-select:has(select:focus-visible) { outline: 3px solid var(--cobalt); outline-offset: 2px; }
 
 .link-btn { padding: 0; border: 0; background: none; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
@@ -239,12 +245,38 @@ img { display: block; max-width: 100%; }
 .idea-card:hover { transform: translate(-2px, -3px); box-shadow: 9px 9px 0 var(--ink); }
 .idea-card:hover .sticker, .boost-card:hover .sticker, .link-card:hover .link-media .sticker { transform: rotate(calc(var(--tilt) * -1)) scale(1.06); }
 .idea-card { position: relative; }
+.idea-card:has(.idea-open:focus-visible) { outline: 3px solid var(--cobalt); outline-offset: 3px; }
 .idea-card .sticker { width: 76%; margin: 0 auto 12px; }
+/* The title is the button; its ::after stretches over the card so a click
+   anywhere opens the recipe. The 👎 sits above it. */
+.idea-open { padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+.idea-open::after { content: ""; position: absolute; inset: 0; border-radius: 29px; }
+.idea-open:focus-visible { outline: none; }
+.nope-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 2px 2px 0 var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 150ms var(--pop), background-color 150ms ease;
+}
+.nope-btn:hover { background: var(--tomato); transform: rotate(10deg) scale(1.08); }
 .liked-tag {
   position: absolute;
   top: 14px;
-  right: 14px;
+  left: 14px;
   z-index: 1;
+  pointer-events: none;
   padding: 3px 11px;
   border: 2.5px solid var(--ink);
   border-radius: 999px;
@@ -252,7 +284,7 @@ img { display: block; max-width: 100%; }
   box-shadow: 2px 2px 0 var(--ink);
   font-weight: 800;
   font-size: 14px;
-  transform: rotate(6deg);
+  transform: rotate(-6deg);
 }
 .idea-title {
   margin-top: auto;
@@ -273,6 +305,17 @@ img { display: block; max-width: 100%; }
   font-weight: 600;
   font-size: 15px;
 }
+.idea-clean { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-weight: 700; font-size: 14px; }
+
+/* Dirty-to-clean meter: five pips, filled up to the score. */
+.clean-meter { display: inline-flex; gap: 3px; }
+.clean-meter i { width: 12px; height: 10px; border: 2px solid var(--ink); border-radius: 3px; background: var(--white); }
+.clean-meter i.on { background: var(--ink); }
+.clean-meter-big { gap: 4px; }
+.clean-meter-big i { width: 22px; height: 16px; border-width: 2.5px; border-radius: 5px; }
+.clean-meter-big.clean-1 i.on, .clean-meter-big.clean-2 i.on { background: var(--tomato); }
+.clean-meter-big.clean-3 i.on { background: var(--butter); }
+.clean-meter-big.clean-4 i.on, .clean-meter-big.clean-5 i.on { background: var(--mint); }
 .idea-stats b { font-weight: 800; font-size: 36px; line-height: 1; font-variation-settings: "wdth" 75; }
 
 /* ---------- Boosters ---------- */
@@ -302,6 +345,19 @@ img { display: block; max-width: 100%; }
 .boost-card h3 { font-weight: 800; font-size: 21px; line-height: 1.1; }
 .boost-card h3 span { font-weight: 600; font-size: 15px; color: var(--muted); }
 .boost-card p:last-child { font-size: 15px; color: var(--muted); }
+
+.idea-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.keeps-tag {
+  align-self: flex-start;
+  margin: auto 0 10px;
+  padding: 2px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--white);
+  font-weight: 700;
+  font-size: 13px;
+}
+.keeps-tag + .idea-title { margin-top: 0; }
 
 .hidden-note { margin: -8px 0 4px; font-size: 15px; font-weight: 600; color: var(--muted); }
 .hidden-note a { color: var(--ink); }
@@ -388,8 +444,31 @@ img { display: block; max-width: 100%; }
 .rated-up { background: var(--mint); }
 .rated-down { background: var(--paper); }
 .rated-item b { font-weight: 700; }
+.rated-item small { max-width: 34ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: var(--muted); }
+.rated-item { max-width: 100%; }
 .rated-item .x { width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; font-size: 20px; line-height: 1; cursor: pointer; }
 .rated-item .x:hover { background: var(--cream); }
+.hint-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 12px; margin: 12px 0 0; padding: 0; list-style: none; }
+.hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 8px 10px 14px;
+  border: 2.5px solid var(--ink);
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.hint .sticker { flex: none; width: 48px; height: 48px; filter: none; }
+.hint > div { flex: 1 1 14ch; min-width: 0; }
+.hint b { display: block; font-weight: 800; font-size: 19px; line-height: 1.15; }
+.hint small { display: block; margin-top: 2px; font-size: 14px; line-height: 1.35; color: var(--muted); }
+.hint-avoid .btn { background: var(--tomato); }
+.hint-love .btn { background: var(--mint); }
+.hint-note .btn { background: var(--sky); }
+.hint .x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
+.hint .x:hover { background: var(--cream); }
 
 /* ---------- Saved links ---------- */
 
@@ -583,11 +662,34 @@ body.is-dropping .drop-hint { display: grid; }
 .idea-blurb { margin-top: 12px; font-size: 19px; max-width: 52ch; }
 .idea-source { margin-top: 8px; font-size: 15px; font-weight: 600; color: var(--muted); }
 .idea-source a { color: var(--ink); }
+.clean-box { margin-top: 18px; padding: 14px 18px; border: 2.5px solid var(--ink); border-radius: 20px; background: var(--white); font-size: 16px; }
+.clean-scale { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 8px; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.clean-scale b { margin-left: 6px; font-weight: 800; font-size: 19px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.clean-swaps { margin-top: 6px; color: var(--muted); }
+.clean-swaps b { color: var(--ink); }
 .recipe { display: grid; grid-template-columns: 1fr 1.3fr; gap: 28px; margin: 26px 0; padding: 22px 0; border-block: 2.5px solid var(--ink); }
 .recipe ul, .recipe ol { margin: 10px 0 0; padding-left: 20px; }
 .recipe li { margin-bottom: 6px; font-size: 16.5px; }
 .recipe ol li::marker { font-weight: 800; }
 .make-bigger h3 { display: flex; align-items: center; gap: 10px; }
+.recipe h3 .plus { margin-left: 10px; }
+
+.ahead { margin: 0 0 26px; padding: 18px 22px 20px; border: var(--line); border-radius: 24px; box-shadow: 4px 4px 0 var(--ink); }
+.ahead-freezer { background: var(--sky); }
+.ahead-fridge { background: var(--mint); }
+.ahead-kit { background: var(--butter); }
+.ahead h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.ahead .plus { background: var(--white); }
+.ahead-icon { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 2.5px solid var(--ink); border-radius: 50%; background: var(--white); font-size: 17px; }
+.ahead h4 { margin: 0; font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 0.02em; }
+.ahead-batch { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; margin-top: 14px; }
+.ahead-batch ul, .ahead-batch ol { margin: 8px 0 0; padding-left: 20px; }
+.ahead-batch li { margin-bottom: 5px; font-size: 16px; }
+.ahead-batch ol li::marker { font-weight: 800; }
+.ahead-facts { display: grid; gap: 6px; margin: 14px 0 0; padding-top: 12px; border-top: 2.5px dashed var(--ink); }
+.ahead-facts > div { display: grid; grid-template-columns: 96px 1fr; gap: 10px; font-size: 16px; }
+.ahead-facts dt { font-weight: 800; }
+.ahead-facts dd { margin: 0; }
 .plus { padding: 2px 10px; border: 2px solid var(--ink); border-radius: 999px; background: var(--tomato); font-size: 15px; text-transform: none; letter-spacing: 0; }
 .boost-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 18px; }
 .boost-chip {
@@ -634,12 +736,32 @@ body.is-dropping .drop-hint { display: grid; }
 .thumbs-more p { font-size: 16px; font-weight: 600; }
 .thumbs-more .boost-chips { margin: 10px 0 0; }
 .food-love:hover { background: var(--mint); }
-.food-avoid:hover { background: var(--tomato); }
+.food-avoid:hover, .food-avoid[aria-pressed="true"] { background: var(--tomato); }
+
+/* Thumbs down: why */
+.nope-modal { width: min(640px, calc(100vw - 32px)); }
+.nope-head { display: flex; align-items: center; gap: 18px; }
+.nope-head .sticker { flex: none; width: 96px; }
+.nope-head h2 { margin-top: 4px; font-size: 40px; }
+.nope-sub { margin-top: 14px; font-size: 16px; color: var(--muted); }
+.nope { display: flex; flex-direction: column; gap: 18px; margin-top: 20px; }
+.thumbs-more .nope { margin-top: 0; }
+.nope-group { margin: 0; padding: 0; border: 0; min-width: 0; }
+.nope-group legend { padding: 0; margin-bottom: 10px; font-weight: 700; font-size: 15px; }
+.nope-group .boost-chips { margin: 0; }
+@media (max-width: 640px) {
+  .nope-head .sticker { width: 72px; }
+  .nope-head h2 { font-size: 32px; }
+}
 @media (max-width: 860px) {
   .idea-modal .modal-inner { grid-template-columns: minmax(0, 1fr); }
   .stat-row .badge { width: 104px; height: 104px; }
   .stat-row .badge b { font-size: 30px; }
-  .recipe { grid-template-columns: 1fr; }
+  .recipe, .ahead-batch { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .ahead { padding: 16px; }
+  .ahead-facts > div { grid-template-columns: 1fr; gap: 0; }
 }
 
 /* Swipe quiz */

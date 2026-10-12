@@ -31,6 +31,7 @@ export const PALETTE = {
   tomato: '#FF5A36', leaf: '#3E9A3A',
   pickle: '#6FA03A', pickleBump: '#4C7A25',
   fry: '#FFD447', carton: '#FF5A36', noodle: '#E8B46A', noodleLine: '#B8642B', takeout: '#FFFFFF',
+  dish: '#2B45E0',
 }
 
 export type Role = keyof typeof PALETTE
@@ -299,6 +300,22 @@ export const STICKERS = {
     p('M170 60 L140 72 L156 80 Z', 'takeout'),
     p('M40 78 H160 L146 188 H54 Z', 'takeout'),
     c(100, 132, 20, 'carton'),
+  ],
+  steak: [
+    p('M40 70 C40 40 90 30 120 40 C160 52 178 80 168 116 C160 150 120 172 84 166 C46 160 26 130 32 104 C34 90 40 84 40 70 Z', 'baconFat'),
+    p('M54 76 C56 54 92 46 118 54 C150 64 162 88 154 114 C146 142 116 156 86 152 C58 148 42 126 46 106 C48 94 54 88 54 76 Z', 'meatball'),
+    line('M66 92 L100 136 M88 72 L128 128 M116 64 L148 106', 'chocDark', 6),
+    p('M138 150 Q164 132 182 148 Q164 166 138 150 Z', 'basil'),
+  ],
+  // A baking dish: baked ziti as drawn; mac and cheese recolors it.
+  tray: [
+    r(4, 80, 30, 20, 10, 'dish'), r(166, 80, 30, 20, 10, 'dish'),
+    p('M24 96 H176 L168 160 Q166 176 150 176 H50 Q34 176 32 160 Z', 'dish'),
+    line('M50 140 H150', 'cream', 5, '2 14'),
+    r(16, 62, 168, 48, 24, 'dish'),
+    r(28, 70, 144, 32, 16, 'cheese'),
+    c(58, 84, 8, 'sauce', {}, true), c(100, 92, 9, 'sauce', {}, true), c(142, 82, 8, 'sauce', {}, true),
+    c(80, 78, 6, 'crust', {}, true), c(122, 90, 7, 'crust', {}, true),
   ],
 } satisfies Record<string, Shape[]>
 

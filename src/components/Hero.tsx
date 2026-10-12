@@ -1,13 +1,15 @@
 import { Sticker } from '../stickers/Sticker'
 
-export function Hero({ onIdea, onSave }: { onIdea: () => void; onSave: () => void }) {
+// Feed me clean or dirty: a random idea from that end of the scale.
+export function Hero({ onIdea, onSave }: { onIdea: (mode: 'clean' | 'dirty') => void; onSave: () => void }) {
   return (
     <section className="hero" aria-labelledby="hero-h">
       <div className="hero-copy">
         <h1 id="hero-h">More<br />food.</h1>
         <p>Big, easy meal ideas for gaining weight on purpose, and everything good you’ve saved from around the internet.</p>
         <div className="hero-btns">
-          <button type="button" className="btn btn-tomato" onClick={onIdea}>Feed me an idea</button>
+          <button type="button" className="btn btn-mint" onClick={() => onIdea('clean')}>🥦 Feed me clean</button>
+          <button type="button" className="btn btn-tomato" onClick={() => onIdea('dirty')}>🍔 Feed me dirty</button>
           <button type="button" className="btn btn-cream" onClick={onSave}>Save a link</button>
         </div>
       </div>

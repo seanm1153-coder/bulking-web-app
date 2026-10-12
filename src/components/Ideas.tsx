@@ -1,20 +1,34 @@
 import { useState } from 'react'
-import { IDEA_CATEGORIES, type Idea, type IdeaCategory } from '../data/ideas'
+import { CLEAN_LEVELS, IDEA_CATEGORIES, KEEPS, type Idea, type IdeaCategory } from '../data/ideas'
 import { Sticker } from '../stickers/Sticker'
+import { CleanMeter } from './CleanMeter'
 
 const CARD_COLORS = ['var(--butter)', 'var(--pink)', 'var(--mint)', 'var(--sky)', 'var(--tomato)']
 const TILTS = [-4, 3, -2, 5, -5, 2]
 
+type Order = 'usual' | 'clean' | 'dirty'
+const ORDERS: { id: Order; label: string }[] = [
+  { id: 'usual', label: 'Usual order' },
+  { id: 'clean', label: 'Cleanest first' },
+  { id: 'dirty', label: 'Dirtiest first' },
+]
+
 // `ideas` is already filtered by preferences and thumbs down; `hidden` says
-// what was left out. `liked` is the slugs with a thumbs up.
-export function Ideas({ ideas, hidden, liked, onOpen }: {
+// what was left out. `liked` is the slugs with a thumbs up. The 👎 on a card
+// calls `onNope`.
+export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
   ideas: Idea[]
   hidden: { count: number; labels: string[]; down: number }
   liked: Set<string>
   onOpen: (idea: Idea) => void
+  onNope: (idea: Idea) => void
 }) {
   const [filter, setFilter] = useState<IdeaCategory | 'all'>('all')
-  const shown = filter === 'all' ? ideas : ideas.filter((i) => i.category === filter)
+  const [aheadOnly, setAheadOnly] = useState(false) // on top of the category
+  const [order, setOrder] = useState<Order>('usual')
+  const filtered = ideas.filter((i) => (filter === 'all' || i.category === filter) && (!aheadOnly || i.ahead))
+  // Sort is stable, so ties keep the usual order.
+  const shown = order === 'usual' ? filtered : [...filtered].sort((a, b) => (order === 'clean' ? b.clean.score - a.clean.score : a.clean.score - b.clean.score))
 
   return (
     <section className="section" id="ideas" aria-labelledby="ideas-h">
@@ -23,12 +37,23 @@ export function Ideas({ ideas, hidden, liked, onOpen }: {
           <h2 id="ideas-h">Ideas</h2>
           <p className="section-sub">Meals that make eating more feel easy. Click one for the recipe.</p>
         </div>
-        <div className="pills" role="group" aria-label="Filter ideas">
-          {[{ id: 'all' as const, label: 'All' }, ...IDEA_CATEGORIES].map((c) => (
-            <button key={c.id} type="button" className="pill" aria-pressed={filter === c.id} onClick={() => setFilter(c.id)}>
-              {c.label}
-            </button>
-          ))}
+        <div className="idea-filters">
+          <div className="pills" role="group" aria-label="Filter ideas">
+            {[{ id: 'all' as const, label: 'All' }, ...IDEA_CATEGORIES].map((c) => (
+              <button key={c.id} type="button" className="pill" aria-pressed={filter === c.id} onClick={() => setFilter(c.id)}>
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <button type="button" className="pill pill-ahead" aria-pressed={aheadOnly} onClick={() => setAheadOnly((on) => !on)}>
+            {KEEPS.freezer.icon} Make ahead <span className="pill-n">{ideas.filter((i) => i.ahead).length}</span>
+          </button>
+          <label className="pill pill-select">
+            <span className="visually-hidden">Sort ideas</span>
+            <select value={order} onChange={(e) => setOrder(e.target.value as Order)}>
+              {ORDERS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
+          </label>
         </div>
       </header>
 
@@ -43,16 +68,28 @@ export function Ideas({ ideas, hidden, liked, onOpen }: {
 
       <div className="idea-grid">
         {shown.map((idea, n) => (
-          <button key={idea.slug} type="button" className="idea-card" style={{ background: CARD_COLORS[n % CARD_COLORS.length] }} onClick={() => onOpen(idea)}>
+          // The open button stretches over the whole card (see .idea-open);
+          // the 👎 sits on top of it.
+          <article key={idea.slug} className="idea-card" style={{ background: CARD_COLORS[n % CARD_COLORS.length] }}>
             {liked.has(idea.slug) && <span className="liked-tag">👍 Liked</span>}
+            <button type="button" className="nope-btn" aria-label={`Thumbs down: ${idea.title}`} title="Not for me" onClick={() => onNope(idea)}>👎</button>
             <Sticker name={idea.sticker} palette={idea.palette} tilt={TILTS[n % TILTS.length]} />
-            <span className="idea-title">{idea.title}</span>
+            {idea.ahead && (
+              <span className="keeps-tag">
+                {KEEPS[idea.ahead.keeps].icon} {KEEPS[idea.ahead.keeps].label} · makes {idea.ahead.makes}
+              </span>
+            )}
+            <button type="button" className="idea-open idea-title" onClick={() => onOpen(idea)}>{idea.title}</button>
             <span className="idea-stats">
               <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.protein} g protein · {idea.time}
             </span>
-          </button>
+            <span className="idea-clean">
+              <CleanMeter score={idea.clean.score} /> {CLEAN_LEVELS[idea.clean.score]}
+            </span>
+          </article>
         ))}
       </div>
+      {shown.length === 0 && <p className="taste-empty">Nothing here with these filters.</p>}
     </section>
   )
 }

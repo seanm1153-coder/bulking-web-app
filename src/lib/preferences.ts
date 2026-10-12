@@ -23,7 +23,21 @@ export interface Rating {
   title: string
   thumb: Thumb
   on: string // YYYY-MM-DD
+  reasons?: string[] // down only: what put you off, labels from REASONS
+  note?: string // down only: why, in your own words
 }
+
+export type Feedback = Pick<Rating, 'reasons' | 'note'>
+
+// Quick answers to "what put you off?" after a thumbs down. Saved as the
+// label; when one keeps coming up, Your tastes offers its `note`.
+export const REASONS: { label: string; note: string }[] = [
+  { label: 'Too much work', note: 'Keep recipes quick, with few steps' },
+  { label: 'Too sweet', note: 'Go easy on sweet stuff' },
+  { label: 'Too rich', note: 'Not too rich or greasy' },
+  { label: 'Too plain', note: 'Bold flavors over plain ones' },
+  { label: 'Too pricey', note: 'Cheap, everyday ingredients' },
+]
 
 export interface PreferencesFile {
   preferences: Preference[]
@@ -32,7 +46,18 @@ export interface PreferencesFile {
 
 const KINDS: PrefKind[] = ['avoid', 'love', 'note']
 
-// Older files have no `ratings`; they load with none.
+// Keeps a rating's optional parts only when they're the right shape.
+function cleanRating({ reasons, note, ...rating }: Rating): Rating {
+  const why = Array.isArray(reasons) ? reasons.filter((r): r is string => typeof r === 'string' && r.trim() !== '') : []
+  return {
+    ...rating,
+    ...(why.length ? { reasons: why } : {}),
+    ...(typeof note === 'string' && note.trim() ? { note: note.trim() } : {}),
+  }
+}
+
+// Older files have no `ratings`, and older ratings no `reasons` or `note`;
+// they load without them.
 export const parsePreferences = (raw: unknown): PreferencesFile => {
   const file = raw as Partial<PreferencesFile> | undefined
   const list = file?.preferences
@@ -42,7 +67,7 @@ export const parsePreferences = (raw: unknown): PreferencesFile => {
       ? list.filter((p): p is Preference => !!p && typeof p.label === 'string' && KINDS.includes(p.kind))
       : [],
     ratings: Array.isArray(ratings)
-      ? ratings.filter((r): r is Rating => !!r && typeof r.idea === 'string' && (r.thumb === 'up' || r.thumb === 'down'))
+      ? ratings.filter((r): r is Rating => !!r && typeof r.idea === 'string' && (r.thumb === 'up' || r.thumb === 'down')).map(cleanRating)
       : [],
   }
 }
@@ -100,8 +125,18 @@ export function newPreference(kind: PrefKind, label: string, now = new Date()): 
   }
 }
 
-// Sets (or with null, clears) the rating for one idea.
-export function rate(ratings: Rating[], idea: { slug: string; title: string }, thumb: Thumb | null, now = new Date()): Rating[] {
+// Adds preferences, skipping labels already in the list (whatever the case).
+export function addPreferences(list: Preference[], items: Omit<Preference, 'id' | 'added'>[], now = new Date()): Preference[] {
+  const have = new Set(list.map((p) => p.label.toLowerCase()))
+  const fresh = items
+    .filter((i) => !have.has(i.label.trim().toLowerCase()))
+    .map(({ kind, label, ...extra }) => ({ ...newPreference(kind, label, now), ...extra }))
+  return [...list, ...fresh]
+}
+
+// Sets (or with null, clears) the rating for one idea. `feedback` is the
+// why behind a thumbs down.
+export function rate(ratings: Rating[], idea: { slug: string; title: string }, thumb: Thumb | null, feedback: Feedback = {}, now = new Date()): Rating[] {
   const rest = ratings.filter((r) => r.idea !== idea.slug)
-  return thumb ? [...rest, { idea: idea.slug, title: idea.title, thumb, on: today(now) }] : rest
+  return thumb ? [...rest, cleanRating({ idea: idea.slug, title: idea.title, thumb, on: today(now), ...feedback })] : rest
 }
