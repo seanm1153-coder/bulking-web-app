@@ -329,6 +329,19 @@ img { display: block; max-width: 100%; }
 .boost-card h3 span { font-weight: 600; font-size: 15px; color: var(--muted); }
 .boost-card p:last-child { font-size: 15px; color: var(--muted); }
 
+.idea-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.keeps-tag {
+  align-self: flex-start;
+  margin: auto 0 10px;
+  padding: 2px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--white);
+  font-weight: 700;
+  font-size: 13px;
+}
+.keeps-tag + .idea-title { margin-top: 0; }
+
 .hidden-note { margin: -8px 0 4px; font-size: 15px; font-weight: 600; color: var(--muted); }
 .hidden-note a { color: var(--ink); }
 
@@ -637,6 +650,24 @@ body.is-dropping .drop-hint { display: grid; }
 .recipe li { margin-bottom: 6px; font-size: 16.5px; }
 .recipe ol li::marker { font-weight: 800; }
 .make-bigger h3 { display: flex; align-items: center; gap: 10px; }
+.recipe h3 .plus { margin-left: 10px; }
+
+.ahead { margin: 0 0 26px; padding: 18px 22px 20px; border: var(--line); border-radius: 24px; box-shadow: 4px 4px 0 var(--ink); }
+.ahead-freezer { background: var(--sky); }
+.ahead-fridge { background: var(--mint); }
+.ahead-kit { background: var(--butter); }
+.ahead h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.ahead .plus { background: var(--white); }
+.ahead-icon { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 2.5px solid var(--ink); border-radius: 50%; background: var(--white); font-size: 17px; }
+.ahead h4 { margin: 0; font-weight: 800; font-size: 15px; text-transform: uppercase; letter-spacing: 0.02em; }
+.ahead-batch { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; margin-top: 14px; }
+.ahead-batch ul, .ahead-batch ol { margin: 8px 0 0; padding-left: 20px; }
+.ahead-batch li { margin-bottom: 5px; font-size: 16px; }
+.ahead-batch ol li::marker { font-weight: 800; }
+.ahead-facts { display: grid; gap: 6px; margin: 14px 0 0; padding-top: 12px; border-top: 2.5px dashed var(--ink); }
+.ahead-facts > div { display: grid; grid-template-columns: 96px 1fr; gap: 10px; font-size: 16px; }
+.ahead-facts dt { font-weight: 800; }
+.ahead-facts dd { margin: 0; }
 .plus { padding: 2px 10px; border: 2px solid var(--ink); border-radius: 999px; background: var(--tomato); font-size: 15px; text-transform: none; letter-spacing: 0; }
 .boost-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 18px; }
 .boost-chip {
@@ -704,7 +735,11 @@ body.is-dropping .drop-hint { display: grid; }
   .idea-modal .modal-inner { grid-template-columns: minmax(0, 1fr); }
   .stat-row .badge { width: 104px; height: 104px; }
   .stat-row .badge b { font-size: 30px; }
-  .recipe { grid-template-columns: 1fr; }
+  .recipe, .ahead-batch { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  .ahead { padding: 16px; }
+  .ahead-facts > div { grid-template-columns: 1fr; gap: 0; }
 }
 
 /* Swipe quiz */

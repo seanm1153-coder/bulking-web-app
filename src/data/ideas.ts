@@ -14,6 +14,31 @@ export const IDEA_CATEGORIES: { id: IdeaCategory; label: string }[] = [
 
 export type BoosterId = 'pb' | 'milk' | 'oil' | 'avocado' | 'cheese' | 'granola' | 'butter' | 'honey' | 'nuts' | 'cream'
 
+// How an idea keeps when you make it ahead: frozen, in the fridge for a few
+// days, or as dry kits in the cupboard.
+export type Keeps = 'freezer' | 'fridge' | 'kit'
+
+export const KEEPS: Record<Keeps, { icon: string; label: string }> = {
+  freezer: { icon: '❄️', label: 'Freezes' },
+  fridge: { icon: '🥡', label: 'Fridge prep' },
+  kit: { icon: '🫙', label: 'Prep kits' },
+}
+
+// Making an idea ahead. `kcal` and `protein` on the idea are always for one
+// portion. `batch` is for an idea written for one: what to buy and do for
+// `makes` portions. It's left out when the recipe itself is the batch.
+// Storage times stay conservative: cooked food 3–4 days in the fridge, and
+// up to 3 months in the freezer.
+export interface Ahead {
+  keeps: Keeps
+  makes: number
+  unit: string // a portion, plural: "burritos", "jars"
+  batch?: { ingredients: string[]; steps: string[] }
+  lasts: string
+  eat: string // reheating or serving
+  fresh?: string[] // added when you eat it, not before
+}
+
 export interface Idea {
   slug: string
   title: string
@@ -28,6 +53,7 @@ export interface Idea {
   steps: string[]
   boost: BoosterId[]
   source?: { name: string; url: string } // the recipe this one was adapted from
+  ahead?: Ahead
 }
 
 export interface Booster {
@@ -55,7 +81,8 @@ export const BOOSTERS: Booster[] = [
 ]
 
 // Everything a preference could match against.
-export const ideaText = (i: Idea) => [i.title, i.blurb, ...i.ingredients, ...i.steps].join('\n')
+const aheadText = (a: Ahead) => [...(a.batch?.ingredients ?? []), ...(a.batch?.steps ?? []), a.lasts, a.eat, ...(a.fresh ?? [])]
+export const ideaText = (i: Idea) => [i.title, i.blurb, ...i.ingredients, ...i.steps, ...(i.ahead ? aheadText(i.ahead) : [])].join('\n')
 export const boosterText = (b: Booster) => [b.name, b.amount, b.tip].join('\n')
 
 export const IDEAS: Idea[] = [
@@ -66,6 +93,16 @@ export const IDEAS: Idea[] = [
     ingredients: ['¾ cup pancake mix', '1 scoop vanilla whey', '1 cup whole milk', '1 egg', '1 tbsp butter', '3 tbsp maple syrup', '2 tbsp chocolate chips'],
     steps: ['Whisk the mix, whey, milk and egg until just combined.', 'Cook four or five pancakes in butter over medium heat, scattering chocolate chips on each.', 'Stack them up and finish with more butter and syrup.'],
     boost: ['butter', 'pb', 'nuts'],
+    ahead: {
+      keeps: 'freezer', makes: 4, unit: 'stacks',
+      batch: {
+        ingredients: ['3 cups pancake mix', '4 scoops vanilla whey', '4 cups whole milk', '4 eggs', 'Butter for the pan', '½ cup chocolate chips'],
+        steps: ['Make four times the batter and cook all the pancakes.', 'Cool them on a rack, then freeze them flat on a tray for an hour.', 'Bag them in stacks of four or five, with baking paper between.'],
+      },
+      lasts: 'Up to 2 months in the freezer.',
+      eat: 'Straight from frozen: two rounds in the toaster, or about a minute in the microwave.',
+      fresh: ['Butter', 'Maple syrup'],
+    },
   },
   {
     slug: 'overnight-oats', title: 'Loaded overnight oats', category: 'breakfast', sticker: 'jar',
@@ -74,6 +111,16 @@ export const IDEAS: Idea[] = [
     ingredients: ['1 cup rolled oats', '1 cup whole milk', '1 scoop whey', '2 tbsp peanut butter', '1 tbsp honey', '2 tbsp chocolate chips'],
     steps: ['Stir the oats, milk and whey together in a jar.', 'Swirl in the peanut butter and honey.', 'Refrigerate overnight. Top with chocolate chips in the morning.'],
     boost: ['nuts', 'honey', 'pb'],
+    ahead: {
+      keeps: 'fridge', makes: 5, unit: 'jars',
+      batch: {
+        ingredients: ['5 cups rolled oats', '5 cups whole milk', '5 scoops whey', '⅔ cup peanut butter', '5 tbsp honey', '⅔ cup chocolate chips'],
+        steps: ['Line up five jars. Split the oats, milk and whey between them and stir each one.', 'Swirl peanut butter and honey into each jar.', 'Lid them and keep them in the fridge. Bag the chocolate chips separately.'],
+      },
+      lasts: 'Up to 4 days in the fridge.',
+      eat: 'Cold from the fridge, or 1 to 2 minutes in the microwave with a splash of milk.',
+      fresh: ['Chocolate chips'],
+    },
   },
   {
     slug: 'breakfast-burrito', title: 'Big breakfast burrito', category: 'breakfast', sticker: 'burrito',
@@ -82,6 +129,16 @@ export const IDEAS: Idea[] = [
     ingredients: ['1 large flour tortilla', '3 eggs', '3 oz breakfast sausage', '½ cup hash browns', '¼ cup shredded cheddar', 'Salsa'],
     steps: ['Brown the sausage, then crisp the hash browns in the same pan.', 'Scramble the eggs softly and fold in the cheese.', 'Pile everything onto the tortilla, add salsa, and roll it up.'],
     boost: ['avocado', 'cheese', 'cream'],
+    ahead: {
+      keeps: 'freezer', makes: 8, unit: 'burritos',
+      batch: {
+        ingredients: ['8 large flour tortillas', '24 eggs', '1½ lb breakfast sausage', '4 cups frozen hash browns', '2 cups shredded cheddar'],
+        steps: ['Brown the sausage and crisp the hash browns, in batches.', 'Scramble the eggs until only just set, so they don’t dry out when reheated. Fold in the cheese.', 'Let the filling cool completely, then fill and roll the tortillas tightly.', 'Wrap each burrito in foil and freeze them together in a bag.'],
+      },
+      lasts: 'Up to 3 months in the freezer.',
+      eat: 'Unwrap, wrap in a damp paper towel and microwave 2 to 3 minutes, turning once. Crisp it in a dry pan if you like.',
+      fresh: ['Salsa, on the side so the tortilla stays dry'],
+    },
   },
   {
     slug: 'pb-honey-toast', title: 'Peanut butter honey toast', category: 'breakfast', sticker: 'toast',
@@ -98,6 +155,15 @@ export const IDEAS: Idea[] = [
     ingredients: ['1 brioche bun', '2 eggs', '3 strips bacon', '1 slice cheddar', 'Butter for the pan'],
     steps: ['Cook the bacon until crisp.', 'Fry the eggs in butter and melt the cheese over them.', 'Toast the bun and stack it all up.'],
     boost: ['butter', 'avocado', 'milk'],
+    ahead: {
+      keeps: 'freezer', makes: 6, unit: 'sandwiches',
+      batch: {
+        ingredients: ['6 brioche buns', '12 eggs', '18 strips bacon', '6 slices cheddar'],
+        steps: ['Bake the bacon on a sheet pan at 400°F for 15 to 20 minutes, until crisp.', 'Whisk the eggs with a pinch of salt, pour into a greased 9×13 pan and bake at 350°F for about 15 minutes. Cut into six squares.', 'Build the sandwiches and let them cool. Wrap each in baking paper and freeze them in a bag.'],
+      },
+      lasts: 'Up to 2 months in the freezer.',
+      eat: 'Unwrap, wrap in a paper towel and microwave about 2 minutes, flipping halfway.',
+    },
   },
   {
     slug: 'burrito-bowl', title: 'Chicken burrito bowl', category: 'meals', sticker: 'bowl',
@@ -106,6 +172,16 @@ export const IDEAS: Idea[] = [
     ingredients: ['1½ cups cooked rice', '6 oz chicken thigh', '½ cup black beans', '¼ cup shredded cheese', '½ avocado', '2 tbsp sour cream', 'Corn salsa'],
     steps: ['Season the chicken with chili powder, cumin and salt. Sear until cooked through.', 'Warm the beans and fluff the rice.', 'Build the bowl and top with cheese, avocado, sour cream and salsa.'],
     boost: ['oil', 'cheese', 'avocado'],
+    ahead: {
+      keeps: 'freezer', makes: 5, unit: 'bowls',
+      batch: {
+        ingredients: ['2½ cups dry rice (7½ cups cooked)', '2 lb chicken thighs', 'Chili powder, cumin and salt', 'Two 15-oz cans black beans', '1¼ cups shredded cheese'],
+        steps: ['Cook the rice and spread it on a tray so it cools quickly.', 'Season and sear all the chicken, then slice it.', 'Split the rice, beans, chicken and cheese between five containers. Into the fridge or freezer once cool.'],
+      },
+      lasts: '4 days in the fridge, or up to 3 months in the freezer.',
+      eat: 'Microwave 3 minutes from the fridge or 5 to 6 from frozen, with a splash of water over the rice.',
+      fresh: ['Avocado', 'Sour cream', 'Corn salsa'],
+    },
   },
   {
     slug: 'spaghetti-meatballs', title: 'Spaghetti and meatballs', category: 'meals', sticker: 'pasta',
@@ -114,6 +190,16 @@ export const IDEAS: Idea[] = [
     ingredients: ['4 oz dry spaghetti', '6 oz beef meatballs', '1 cup marinara', '2 tbsp parmesan', 'Fresh basil'],
     steps: ['Brown the meatballs, then simmer them in the marinara for 15 minutes.', 'Cook the spaghetti and toss it with some of the sauce.', 'Top with meatballs, parmesan and basil.'],
     boost: ['oil', 'cheese', 'cream'],
+    ahead: {
+      keeps: 'freezer', makes: 6, unit: 'portions',
+      batch: {
+        ingredients: ['1½ lb dry spaghetti', '2¼ lb beef meatballs', '6 cups marinara (two 24-oz jars)'],
+        steps: ['Brown the meatballs, then simmer them in all the marinara for 15 minutes.', 'Cook the spaghetti 2 minutes short of done, drain, and toss with a ladle of sauce so it doesn’t clump.', 'Split the pasta between six containers, top with meatballs and sauce, and cool before freezing.'],
+      },
+      lasts: '4 days in the fridge, or up to 3 months in the freezer.',
+      eat: 'Microwave covered, 3 to 4 minutes from the fridge or 6 to 7 from frozen, stirring halfway.',
+      fresh: ['Parmesan', 'Basil'],
+    },
   },
   {
     slug: 'smash-burger', title: 'Double smash burger', category: 'meals', sticker: 'burger',
@@ -166,6 +252,73 @@ export const IDEAS: Idea[] = [
     ingredients: ['1½ cups cooked rice', '5 oz 80/20 ground beef', '1 egg', '2 tbsp soy sauce', '1 tbsp honey', '1 tsp sesame oil', 'Green onion'],
     steps: ['Brown the beef, then stir in soy, honey and sesame oil until sticky.', 'Fry the egg.', 'Spoon the beef over rice and top with the egg and green onion.'],
     boost: ['oil', 'avocado', 'butter'],
+    ahead: {
+      keeps: 'freezer', makes: 5, unit: 'bowls',
+      batch: {
+        ingredients: ['2½ cups dry rice (7½ cups cooked)', '1½ lb 80/20 ground beef', '⅔ cup soy sauce', '⅓ cup honey', '5 tsp sesame oil'],
+        steps: ['Cook the rice and spread it on a tray so it cools quickly.', 'Brown all the beef, then stir in the soy, honey and sesame oil until sticky.', 'Split between five containers and let them cool before the fridge or freezer.'],
+      },
+      lasts: '4 days in the fridge, or up to 3 months in the freezer.',
+      eat: 'Microwave 3 minutes from the fridge or 5 to 6 from frozen, with a splash of water over the rice.',
+      fresh: ['A fried egg', 'Green onion'],
+    },
+  },
+  {
+    slug: 'beef-bean-burritos', title: 'Spicy beef and bean freezer burritos', category: 'meals', sticker: 'burrito',
+    palette: { chicken: '#7A4128', lettuce: '#E8352B', foil: '#FFD447' },
+    kcal: 870, protein: 42, time: '45 min',
+    blurb: 'One afternoon, eight dinners. Each goes from the freezer to your hand in three minutes.',
+    ingredients: ['2 lb 80/20 ground beef', '1 large onion, diced', '2 chipotle peppers in adobo, chopped', '2 tbsp chili powder, 2 tsp cumin, 1 tsp smoked paprika and salt', 'Two 16-oz cans refried beans', '2 cups cooked rice', '2 cups shredded cheddar', '8 large (12-inch) flour tortillas'],
+    steps: ['Brown the beef with the onion, then stir in the chipotles and spices.', 'Add the beans and a splash of water and simmer until thick, about 5 minutes. Stir in the rice.', 'Let the filling cool completely. Fill each tortilla with it and a handful of cheese, then roll tightly.', 'Wrap each burrito in foil and freeze them together in a bag.'],
+    boost: ['avocado', 'cheese', 'milk'],
+    ahead: {
+      keeps: 'freezer', makes: 8, unit: 'burritos',
+      lasts: 'Up to 3 months in the freezer.',
+      eat: 'Unwrap, wrap in a damp paper towel and microwave about 3 minutes, turning once. Crisp it in a dry pan if you like.',
+      fresh: ['Sour cream', 'Hot sauce', 'Avocado'],
+    },
+  },
+  {
+    slug: 'beef-chili', title: 'Big pot of beef chili', category: 'meals', sticker: 'bowl',
+    palette: { rice: '#D8402B', chicken: '#7A4128', avocado: '#FFF6DE', corn: '#FFC72C', bowl: '#FFD447' },
+    kcal: 950, protein: 49, time: '1 hr',
+    blurb: 'Spicy, beefy and better on day three. Freeze it in bags laid flat and it thaws fast.',
+    ingredients: ['2 lb 80/20 ground beef', '2 onions, diced', '4 cloves garlic, minced', '3 tbsp chili powder, 1 tbsp cumin and 1 tsp smoked paprika', '1 or 2 chipotle peppers in adobo, chopped', '2 tbsp tomato paste', 'One 28-oz can crushed tomatoes', 'Two 15-oz cans kidney beans, drained', '1 cup beef broth', 'To serve: 6 cups cooked rice, 1½ cups shredded cheddar and sour cream'],
+    steps: ['Brown the beef in a big pot. Add the onions and garlic and cook until soft.', 'Stir in the spices, chipotle and tomato paste for a minute, then add the tomatoes, beans and broth.', 'Simmer uncovered for about 40 minutes, stirring now and then, until thick. Salt to taste.', 'Cool, then pack into six containers, or freezer bags laid flat.'],
+    boost: ['cheese', 'avocado', 'butter'],
+    ahead: {
+      keeps: 'freezer', makes: 6, unit: 'bowls',
+      lasts: '4 days in the fridge, or up to 3 months in the freezer.',
+      eat: 'Microwave covered, 3 minutes from the fridge or 6 to 8 from frozen, stirring halfway. Or thaw a bag overnight and warm it in a pan.',
+      fresh: ['Rice', 'Cheddar', 'Sour cream'],
+    },
+  },
+  {
+    slug: 'baked-ziti', title: 'Baked ziti tray', category: 'meals', sticker: 'tray',
+    kcal: 890, protein: 50, time: '1 hr',
+    blurb: 'Pasta, beef and ricotta under a lid of melted mozzarella. Cut it into six and freeze the squares.',
+    ingredients: ['1 lb dry ziti or penne', '1 lb 80/20 ground beef', '1 onion, diced', 'One 24-oz jar marinara', '15 oz whole-milk ricotta', '1 egg', '½ cup grated parmesan', '3 cups shredded mozzarella', 'Salt, pepper and dried oregano'],
+    steps: ['Heat the oven to 375°F. Cook the pasta 2 minutes short of done and drain.', 'Brown the beef with the onion, season, and stir in the marinara.', 'Mix the ricotta, egg, parmesan and half the mozzarella. Toss the pasta with the meat sauce, then fold in the ricotta mix.', 'Spread it in a 9×13 dish, top with the rest of the mozzarella and bake about 25 minutes, until bubbling.', 'Cool, cut into six, and wrap or box each square.'],
+    boost: ['cheese', 'oil', 'milk'],
+    ahead: {
+      keeps: 'freezer', makes: 6, unit: 'squares',
+      lasts: '4 days in the fridge, or up to 3 months in the freezer.',
+      eat: 'Microwave covered, 2 to 3 minutes from the fridge or 5 to 6 from frozen. Or 20 minutes in a 350°F oven.',
+    },
+  },
+  {
+    slug: 'bacon-mac-cheese', title: 'Bacon mac and cheese', category: 'meals', sticker: 'tray',
+    palette: { dish: '#FF5A36', sauce: '#D45A3C' },
+    kcal: 1030, protein: 49, time: '45 min',
+    blurb: 'Sharp cheddar sauce, a pound of bacon and a crunchy top. It freezes better than you’d think.',
+    ingredients: ['1 lb dry elbow macaroni', '1 lb bacon, chopped', '4 tbsp butter', '¼ cup flour', '4 cups whole milk', '4 cups shredded sharp cheddar', '1 cup shredded mozzarella', '1 tsp mustard powder, salt and pepper', '1 cup panko tossed with 2 tbsp melted butter'],
+    steps: ['Heat the oven to 375°F. Cook the macaroni 2 minutes short of done and drain.', 'Fry the bacon until crisp and scoop it out.', 'Melt the butter, whisk in the flour for a minute, then slowly whisk in the milk. Simmer until it coats a spoon. Off the heat, stir in the cheeses and mustard powder.', 'Fold in the macaroni and bacon, spread it in a 9×13 dish, top with the panko and bake 20 minutes.', 'Cool, then scoop into six containers.'],
+    boost: ['cheese', 'butter', 'milk'],
+    ahead: {
+      keeps: 'freezer', makes: 6, unit: 'portions',
+      lasts: '4 days in the fridge, or up to 2 months in the freezer.',
+      eat: 'Add a splash of milk and microwave covered, 2 to 3 minutes from the fridge or 5 to 6 from frozen, stirring halfway.',
+    },
   },
   {
     slug: 'vanilla-malt-shake', title: 'Thousand-calorie vanilla malt', category: 'shakes', sticker: 'shake',
@@ -174,6 +327,16 @@ export const IDEAS: Idea[] = [
     ingredients: ['2 cups whole milk', '1 cup vanilla ice cream', '1 scoop vanilla whey', '½ cup rolled oats', '2 tbsp malted milk powder', '1 tbsp honey'],
     steps: ['Blend the oats first so they turn to powder.', 'Add everything else and blend until smooth.', 'Pour into the biggest glass you own.'],
     boost: ['pb', 'cream', 'nuts'],
+    ahead: {
+      keeps: 'kit', makes: 7, unit: 'kits',
+      batch: {
+        ingredients: ['3½ cups rolled oats', '7 scoops vanilla whey', '1 scant cup malted milk powder'],
+        steps: ['Blend all the oats to a powder in one go.', 'Split the oat powder, whey and malt powder between seven bags or jars.'],
+      },
+      lasts: 'Several weeks in the cupboard.',
+      eat: 'Tip a kit into the blender with the milk, ice cream and honey, and blend.',
+      fresh: ['2 cups whole milk', '1 cup vanilla ice cream', '1 tbsp honey'],
+    },
   },
   {
     slug: 'chocolate-pb-shake', title: 'Chocolate peanut butter shake', category: 'shakes', sticker: 'shake',
@@ -183,6 +346,16 @@ export const IDEAS: Idea[] = [
     ingredients: ['2 cups whole milk', '1 scoop chocolate whey', '2 tbsp peanut butter', '½ cup chocolate ice cream', '½ cup rolled oats', '1 tbsp cocoa powder'],
     steps: ['Blend the oats into a powder.', 'Add the rest and blend until thick.', 'Add ice if you like it colder and thicker.'],
     boost: ['pb', 'nuts', 'milk'],
+    ahead: {
+      keeps: 'kit', makes: 7, unit: 'kits',
+      batch: {
+        ingredients: ['3½ cups rolled oats', '7 scoops chocolate whey', '7 tbsp cocoa powder'],
+        steps: ['Blend all the oats to a powder in one go.', 'Split the oat powder, whey and cocoa between seven bags or jars.'],
+      },
+      lasts: 'Several weeks in the cupboard.',
+      eat: 'Tip a kit into the blender with the milk, peanut butter and ice cream, and blend.',
+      fresh: ['2 cups whole milk', '2 tbsp peanut butter', '½ cup chocolate ice cream'],
+    },
   },
   {
     slug: 'snack-plate', title: 'Cheese and salami snack plate', category: 'snacks', sticker: 'cheese',
@@ -191,6 +364,16 @@ export const IDEAS: Idea[] = [
     ingredients: ['2 oz cheddar', '2 oz salami', '15 crackers', '¼ cup salted almonds'],
     steps: ['Slice the cheese and salami.', 'Pile it on a board with the crackers and almonds.', 'Keep it within reach.'],
     boost: ['nuts', 'avocado'],
+    ahead: {
+      keeps: 'fridge', makes: 5, unit: 'snack boxes',
+      batch: {
+        ingredients: ['10 oz cheddar', '10 oz salami', 'A box of crackers', '1¼ cups salted almonds'],
+        steps: ['Cube the cheese and slice the salami.', 'Pack them into five containers with ¼ cup almonds in each.', 'Leave the crackers in their box so they stay crisp.'],
+      },
+      lasts: 'Up to 5 days in the fridge.',
+      eat: 'Straight from the fridge, with a handful of crackers.',
+      fresh: ['Crackers'],
+    },
   },
   {
     slug: 'fluffernutter-milk', title: 'Fluffernutter and a glass of milk', category: 'snacks', sticker: 'milk',
@@ -208,5 +391,29 @@ export const IDEAS: Idea[] = [
     ingredients: ['1 cup whole-milk Greek yogurt', '½ cup plain or nut granola', '2 tbsp chopped nuts', '1 tbsp chocolate chips', '1 tbsp honey'],
     steps: ['Spoon half the yogurt into a jar or bowl.', 'Add half the granola, nuts and chocolate chips, then repeat.', 'Finish with honey.'],
     boost: ['honey', 'nuts', 'pb'],
+    ahead: {
+      keeps: 'fridge', makes: 4, unit: 'jars',
+      batch: {
+        ingredients: ['4 cups whole-milk Greek yogurt', '¼ cup honey', '2 cups plain or nut granola', '½ cup chopped nuts', '¼ cup chocolate chips'],
+        steps: ['Spoon the yogurt into four jars and drizzle in the honey.', 'Mix the granola, nuts and chocolate chips and split them into four small bags, so they stay crunchy.'],
+      },
+      lasts: 'Up to 4 days in the fridge.',
+      eat: 'Tip a bag of crunch on top and eat.',
+      fresh: ['The granola mix'],
+    },
+  },
+  {
+    slug: 'pb-protein-bars', title: 'Chocolate peanut butter protein bars', category: 'snacks', sticker: 'chocolate',
+    palette: { chocWrap: '#C9813E' },
+    kcal: 480, protein: 24, time: '15 min, plus 1 hr to set',
+    blurb: 'No baking. A tray of these in the freezer means 500 calories are always within reach.',
+    ingredients: ['2 cups rolled oats', '1 cup peanut butter', '⅓ cup honey', '4 scoops chocolate whey', '¼ cup whole milk', '1 cup chocolate chips', 'A pinch of salt'],
+    steps: ['Warm the peanut butter and honey for 30 seconds so they stir easily.', 'Mix in the oats, whey, salt and half the chocolate chips. Add the milk a spoonful at a time until it holds together.', 'Press into a lined 8×8 pan. Melt the rest of the chips and spread them on top.', 'Chill for an hour, then cut into eight bars.'],
+    boost: ['milk', 'nuts', 'pb'],
+    ahead: {
+      keeps: 'freezer', makes: 8, unit: 'bars',
+      lasts: 'A week in the fridge, or up to 3 months in the freezer.',
+      eat: 'Straight from the fridge, or 10 minutes out of the freezer.',
+    },
   },
 ]

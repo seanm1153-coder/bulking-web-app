@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { IDEA_CATEGORIES, type Idea, type IdeaCategory } from '../data/ideas'
+import { IDEA_CATEGORIES, KEEPS, type Idea, type IdeaCategory } from '../data/ideas'
 import { Sticker } from '../stickers/Sticker'
 
 const CARD_COLORS = ['var(--butter)', 'var(--pink)', 'var(--mint)', 'var(--sky)', 'var(--tomato)']
@@ -16,7 +16,8 @@ export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
   onNope: (idea: Idea) => void
 }) {
   const [filter, setFilter] = useState<IdeaCategory | 'all'>('all')
-  const shown = filter === 'all' ? ideas : ideas.filter((i) => i.category === filter)
+  const [aheadOnly, setAheadOnly] = useState(false) // on top of the category
+  const shown = ideas.filter((i) => (filter === 'all' || i.category === filter) && (!aheadOnly || i.ahead))
 
   return (
     <section className="section" id="ideas" aria-labelledby="ideas-h">
@@ -25,12 +26,17 @@ export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
           <h2 id="ideas-h">Ideas</h2>
           <p className="section-sub">Meals that make eating more feel easy. Click one for the recipe.</p>
         </div>
-        <div className="pills" role="group" aria-label="Filter ideas">
-          {[{ id: 'all' as const, label: 'All' }, ...IDEA_CATEGORIES].map((c) => (
-            <button key={c.id} type="button" className="pill" aria-pressed={filter === c.id} onClick={() => setFilter(c.id)}>
-              {c.label}
-            </button>
-          ))}
+        <div className="idea-filters">
+          <div className="pills" role="group" aria-label="Filter ideas">
+            {[{ id: 'all' as const, label: 'All' }, ...IDEA_CATEGORIES].map((c) => (
+              <button key={c.id} type="button" className="pill" aria-pressed={filter === c.id} onClick={() => setFilter(c.id)}>
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <button type="button" className="pill pill-ahead" aria-pressed={aheadOnly} onClick={() => setAheadOnly((on) => !on)}>
+            {KEEPS.freezer.icon} Make ahead <span className="pill-n">{ideas.filter((i) => i.ahead).length}</span>
+          </button>
         </div>
       </header>
 
@@ -51,6 +57,11 @@ export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
             {liked.has(idea.slug) && <span className="liked-tag">👍 Liked</span>}
             <button type="button" className="nope-btn" aria-label={`Thumbs down: ${idea.title}`} title="Not for me" onClick={() => onNope(idea)}>👎</button>
             <Sticker name={idea.sticker} palette={idea.palette} tilt={TILTS[n % TILTS.length]} />
+            {idea.ahead && (
+              <span className="keeps-tag">
+                {KEEPS[idea.ahead.keeps].icon} {KEEPS[idea.ahead.keeps].label} · makes {idea.ahead.makes}
+              </span>
+            )}
             <button type="button" className="idea-open idea-title" onClick={() => onOpen(idea)}>{idea.title}</button>
             <span className="idea-stats">
               <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.protein} g protein · {idea.time}
@@ -58,6 +69,7 @@ export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
           </article>
         ))}
       </div>
+      {shown.length === 0 && <p className="taste-empty">Nothing here with these filters.</p>}
     </section>
   )
 }

@@ -35,6 +35,7 @@ Run `npm run lint && npm test && npm run build` before committing. CI runs the s
 - Visual style is die-cut stickers: thick ink outlines (`--ink`), hard offset shadows, flat colors from the tokens in `:root` in `src/styles.css`. Never use raw hex in components; sticker colors live in `PALETTE`.
 - Desktop-first, but nothing should break on a phone. The save-link dialog in particular is used from the iPhone share sheet.
 - New stickers go in `STICKERS` as a list of shapes in a 200×200 box. Keep them simple: a few flat shapes, ink outlines, no gradients.
-- Calorie and protein numbers in `src/data/ideas.ts` are rough estimates from typical ingredient values. Keep them plausible and keep the "rough estimates" note visible.
+- Calorie and protein numbers in `src/data/ideas.ts` are rough estimates from typical ingredient values. Keep them plausible and keep the "rough estimates" note visible. They're for one portion, also on ideas written as a batch.
+- An idea's `ahead` says how to make it ahead (see `Ahead` in `src/data/ideas.ts`). Keep storage times conservative: cooked food 3–4 days in the fridge and at most 3 months frozen. Put anything that goes soggy or doesn't freeze well (avocado, sour cream, salsa, fried eggs, crunchy toppings) under `fresh`.
 - Never commit an access key. Don't add code that sends the key anywhere except `api.github.com`.
 - `links.json` and `preferences.json` are user data. Changes to their shape must keep old entries loading.

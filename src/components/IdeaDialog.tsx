@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { foodsIn, type Food } from '../data/foods'
-import { IDEA_CATEGORIES, ideaText, type Booster, type BoosterId, type Idea } from '../data/ideas'
+import { IDEA_CATEGORIES, ideaText, KEEPS, type Ahead, type Booster, type BoosterId, type Idea } from '../data/ideas'
 import type { Thumb } from '../lib/preferences'
 import type { PreferencesApi } from '../lib/usePreferences'
 import { Sticker } from '../stickers/Sticker'
@@ -25,6 +25,7 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   const added = all.filter((b) => picked.includes(b.id))
   const kcal = idea.kcal + added.reduce((n, b) => n + b.kcal, 0)
   const protein = idea.protein + added.reduce((n, b) => n + b.protein, 0)
+  const batchFirst = !!idea.ahead && !idea.ahead.batch // the recipe itself is the batch
   const toggle = (id: BoosterId) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
 
   return (
@@ -35,7 +36,7 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
           {added.map((b, i) => <Sticker key={b.id} name={b.sticker} palette={b.palette} tilt={i % 2 ? 10 : -10} className="pop" />)}
         </div>
         <div className="stat-row" aria-live="polite">
-          <span className="badge"><b>{kcal.toLocaleString()}</b>kcal</span>
+          <span className="badge"><b>{kcal.toLocaleString()}</b>{batchFirst ? 'kcal each' : 'kcal'}</span>
           <span className="badge badge-pink"><b>{protein}g</b>protein</span>
         </div>
       </div>
@@ -51,7 +52,7 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
 
         <div className="recipe">
           <div>
-            <h3>You need</h3>
+            <h3>You need{batchFirst && <span className="plus">makes {idea.ahead!.makes}</span>}</h3>
             <ul>{idea.ingredients.map((x) => <li key={x}>{x}</li>)}</ul>
           </div>
           <div>
@@ -59,6 +60,8 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
             <ol>{idea.steps.map((x) => <li key={x}>{x}</li>)}</ol>
           </div>
         </div>
+
+        {idea.ahead && <MakeAhead ahead={idea.ahead} kcal={kcal} />}
 
         <div className="make-bigger">
           <h3>Make it bigger {added.length > 0 && <span className="plus">+{(kcal - idea.kcal).toLocaleString()} kcal</span>}</h3>
@@ -78,6 +81,38 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
         {onAnother && <button type="button" className="btn btn-tomato" onClick={onAnother}>Another idea</button>}
       </div>
     </Modal>
+  )
+}
+
+// How to make it ahead: the batch (unless the recipe above already is one),
+// how long it keeps, how to eat it, and what to add fresh. The total counts
+// any boosters picked, since they go on every portion.
+function MakeAhead({ ahead, kcal }: { ahead: Ahead; kcal: number }) {
+  const keeps = KEEPS[ahead.keeps]
+  return (
+    <section className={`ahead ahead-${ahead.keeps}`} aria-label="Make ahead">
+      <h3>
+        <span className="ahead-icon" aria-hidden="true">{keeps.icon}</span> Make ahead
+        <span className="plus">{ahead.makes} {ahead.unit} · {(kcal * ahead.makes).toLocaleString()} kcal</span>
+      </h3>
+      {ahead.batch && (
+        <div className="ahead-batch">
+          <div>
+            <h4>For {ahead.makes}</h4>
+            <ul>{ahead.batch.ingredients.map((x) => <li key={x}>{x}</li>)}</ul>
+          </div>
+          <div>
+            <h4>Batch it</h4>
+            <ol>{ahead.batch.steps.map((x) => <li key={x}>{x}</li>)}</ol>
+          </div>
+        </div>
+      )}
+      <dl className="ahead-facts">
+        <div><dt>Keeps</dt><dd>{ahead.lasts}</dd></div>
+        <div><dt>To eat</dt><dd>{ahead.eat}</dd></div>
+        {ahead.fresh && <div><dt>Add fresh</dt><dd>{ahead.fresh.join(', ')}</dd></div>}
+      </dl>
+    </section>
   )
 }
 

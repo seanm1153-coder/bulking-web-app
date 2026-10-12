@@ -4,7 +4,8 @@ A home base for eating more on purpose: big meal ideas, calorie boosters, your f
 
 ## What's on the page
 
-- **Ideas.** Sixteen big meals (breakfasts, meals, shakes, snacks), each with a recipe. Open one to tap boosters onto it and watch the total climb. **Feed me an idea** picks one at random.
+- **Ideas.** Twenty-three big meals (breakfasts, meals, shakes, snacks), each with a recipe. Open one to tap boosters onto it and watch the total climb. **Feed me an idea** picks one at random.
+- **Make ahead.** Sixteen ideas can be made in a batch: ❄️ freezes, 🥡 keeps in the fridge, or 🫙 packs into dry kits. The **Make ahead** filter shows just those. Each one's recipe has the batch to make, how long it keeps, how to reheat it, what to add fresh, and the calories in the whole batch.
 - **Boosters.** Ten easy add-ons (peanut butter, whole milk, olive oil, butter…) with what each one adds.
 - **Your tastes.** Foods you never want, foods you love, and notes. Ideas and boosters that mention anything on the Never list are hidden, and new recipes are written to follow all of it.
 - **Swipe quiz.** About 30 food stickers to swipe right (love), left (never) or up (fine either way), then save in one go. Foods already in your tastes are skipped. Start it from **Your tastes**.
