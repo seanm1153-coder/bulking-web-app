@@ -11,6 +11,8 @@ A home base for eating more on purpose: big meal ideas, calorie boosters, your f
 
 Calorie and protein numbers are rough estimates.
 
+Ideas for what to build next are in [`ROADMAP.md`](ROADMAP.md).
+
 ## Preferences
 
 [`public/data/preferences.json`](public/data/preferences.json) holds your tastes. Edit them from the **Your tastes** section (it saves the same way links do) or by hand. Each entry has a `kind` (`avoid`, `love` or `note`), a short `label`, and optionally a `detail` explaining it. `avoid` entries can list `terms`, the words that count as a match; otherwise the label is used. Matching is whole-word and catches plurals.
