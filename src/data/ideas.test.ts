@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import saved from '../../public/data/preferences.json'
-import { avoidPattern, parsePreferences } from '../lib/preferences'
+import { avoidMatcher, parsePreferences } from '../lib/preferences'
 import { STICKERS } from '../stickers/shapes'
 import { BOOSTERS, boosterText, IDEAS, ideaText } from './ideas'
 
@@ -8,18 +8,18 @@ import { BOOSTERS, boosterText, IDEAS, ideaText } from './ideas'
 // Never list sneaks back in when ideas are added or edited.
 describe('ideas follow preferences.json', () => {
   const prefs = parsePreferences(saved).preferences
-  const avoid = avoidPattern(prefs)
+  const avoid = avoidMatcher(prefs)
 
   it('has preferences to check against', () => {
     expect(prefs.length).toBeGreaterThan(0)
   })
 
   it.each(IDEAS.map((i) => [i.title, i] as const))('%s avoids everything on the Never list', (_, idea) => {
-    expect(ideaText(idea).match(avoid ?? /$^/)?.[0] ?? null).toBeNull()
+    expect(avoid?.(ideaText(idea)) ?? null).toBeNull()
   })
 
   it.each(BOOSTERS.map((b) => [b.name, b] as const))('booster %s avoids everything on the Never list', (_, booster) => {
-    expect(boosterText(booster).match(avoid ?? /$^/)?.[0] ?? null).toBeNull()
+    expect(avoid?.(boosterText(booster)) ?? null).toBeNull()
   })
 })
 

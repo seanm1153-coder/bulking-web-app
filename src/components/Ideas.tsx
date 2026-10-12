@@ -5,10 +5,12 @@ import { Sticker } from '../stickers/Sticker'
 const CARD_COLORS = ['var(--butter)', 'var(--pink)', 'var(--mint)', 'var(--sky)', 'var(--tomato)']
 const TILTS = [-4, 3, -2, 5, -5, 2]
 
-// `ideas` is already filtered by preferences; `hidden` says what was left out.
-export function Ideas({ ideas, hidden, onOpen }: {
+// `ideas` is already filtered by preferences and thumbs down; `hidden` says
+// what was left out. `liked` is the slugs with a thumbs up.
+export function Ideas({ ideas, hidden, liked, onOpen }: {
   ideas: Idea[]
-  hidden: { count: number; labels: string[] }
+  hidden: { count: number; labels: string[]; down: number }
+  liked: Set<string>
   onOpen: (idea: Idea) => void
 }) {
   const [filter, setFilter] = useState<IdeaCategory | 'all'>('all')
@@ -30,15 +32,19 @@ export function Ideas({ ideas, hidden, onOpen }: {
         </div>
       </header>
 
-      {hidden.count > 0 && (
+      {(hidden.count > 0 || hidden.down > 0) && (
         <p className="hidden-note">
-          Hiding {hidden.count} {hidden.count === 1 ? 'idea' : 'ideas'} with {hidden.labels.join(', ').toLowerCase()}. <a href="#tastes">Your tastes</a>
+          {[
+            hidden.count > 0 && `Hiding ${hidden.count} ${hidden.count === 1 ? 'idea' : 'ideas'} with ${hidden.labels.join(', ').toLowerCase()}.`,
+            hidden.down > 0 && `${hidden.count > 0 ? 'Also hiding' : 'Hiding'} ${hidden.down} you gave a thumbs down.`,
+          ].filter(Boolean).join(' ')} <a href="#tastes">Your tastes</a>
         </p>
       )}
 
       <div className="idea-grid">
         {shown.map((idea, n) => (
           <button key={idea.slug} type="button" className="idea-card" style={{ background: CARD_COLORS[n % CARD_COLORS.length] }} onClick={() => onOpen(idea)}>
+            {liked.has(idea.slug) && <span className="liked-tag">👍 Liked</span>}
             <Sticker name={idea.sticker} palette={idea.palette} tilt={TILTS[n % TILTS.length]} />
             <span className="idea-title">{idea.title}</span>
             <span className="idea-stats">

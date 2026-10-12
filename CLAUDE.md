@@ -13,18 +13,19 @@ Run `npm run lint && npm test && npm run build` before committing. CI runs the s
 
 ## Food preferences come first
 
-`public/data/preferences.json` is the user's food preferences: things to **avoid** (never include, in any form), things they **love**, and **notes**. The user edits it from the Your tastes section of the site, so read the current file before writing anything.
+`public/data/preferences.json` is the user's food preferences: things to **avoid** (never include, in any form), things they **love**, and **notes**, plus `ratings` (thumbs up or down on ideas). The user edits it from the Your tastes section, the swipe quiz and the thumbs on each idea, so read the current file before writing anything.
 
 - Read it before adding or changing any recipe, idea, booster, or meal suggestion, including suggestions made in chat.
-- Never include anything an `avoid` entry covers: not as an ingredient, topping, garnish, flavor, or in a drawing. Its `detail` says what counts; its `terms` are what the site matches.
-- Lean toward `love` entries and follow `notes`.
+- Never include anything an `avoid` entry covers: not as an ingredient, topping, garnish, flavor, or in a drawing. Its `detail` says what counts; its `terms` are what the site matches, and its `allow` lists phrases that are fine anyway (write them exactly that way, e.g. "lemon juice").
+- Lean toward `love` entries and ideas rated `up`, steer away from what ideas rated `down` have in common, and follow `notes`.
 - `src/data/ideas.test.ts` fails if any idea or booster mentions an avoided term. Never weaken that test or an `avoid` entry to make it pass. Change the recipe.
 - Don't add, remove or edit preferences yourself unless the user asks.
 
 ## How it fits together
 
 - There's no backend. The site's data is JSON in `public/data/` (`links.json`, `preferences.json`). With a GitHub access key (kept in `localStorage` as `surplus:github-token`) the site reads and commits those files through the GitHub API (`src/lib/github.ts`, `src/lib/useRepoFile.ts`). Without a key it reads the published copies.
-- The site hides ideas and boosters whose text matches an `avoid` preference (`src/lib/preferences.ts`).
+- The site hides ideas and boosters whose text matches an `avoid` preference (`src/lib/preferences.ts`), and ideas rated down.
+- The swipe quiz and the "what did you love about it?" chips after a thumbs up or down both use the foods in `src/data/foods.ts`. A Never picked there gets that food's `terms`.
 - The deploy workflow runs `scripts/enrich-links.mjs` to fill in `title`, `image`, `site` and `kind`, then commits the file back. The site never fetches link details itself.
 - Stickers are shapes in `src/stickers/shapes.ts`, colored by named roles from `PALETTE`. Recolor a sticker by passing a `palette` override rather than copying its shapes.
 
