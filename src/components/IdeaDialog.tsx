@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { foodsIn, type Food } from '../data/foods'
 import { CLEAN_LEVELS, IDEA_CATEGORIES, ideaText, KEEPS, tweakIdea, type Ahead, type Booster, type BoosterId, type Idea, type Line, type Tweaked } from '../data/ideas'
-import type { Thumb } from '../lib/preferences'
+import { formatAmount, portionLabel, PORTIONS, scaleLine } from '../data/portion'
+import { MACRO_NAMES, MACROS, type Goals, type Macro, type Thumb } from '../lib/preferences'
 import type { PreferencesApi } from '../lib/usePreferences'
 import { Sticker } from '../stickers/Sticker'
 import { CleanMeter } from './CleanMeter'
@@ -9,7 +10,7 @@ import { ConnectForm } from './ConnectForm'
 import { Modal } from './Modal'
 import { ThumbsDownForm } from './ThumbsDown'
 
-export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClose, onAnother, anotherLabel = 'Another idea' }: {
+export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClose, onAnother, anotherLabel = 'Another idea', onGoals }: {
   idea: Idea
   boosters: Booster[]
   prefs: PreferencesApi
@@ -18,9 +19,11 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   onClose: () => void
   onAnother?: () => void
   anotherLabel?: string
+  onGoals: () => void
 }) {
   const [picked, setPicked] = useState<BoosterId[]>([])
   const [notch, setNotch] = useState(0) // on the clean-or-dirty slider; 0 is as written
+  const [portion, setPortion] = useState(1)
   const category = IDEA_CATEGORIES.find((c) => c.id === idea.category)?.label
 
   // Suggested boosters first, then the rest.
@@ -28,9 +31,13 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   const added = all.filter((b) => picked.includes(b.id))
   const boostKcal = added.reduce((n, b) => n + b.kcal, 0)
   const tweaked = tweakIdea(idea, notch)
-  const kcal = tweaked.kcal + boostKcal
-  const sum = (key: 'protein' | 'carbs' | 'fat') => tweaked[key] + added.reduce((n, b) => n + b[key], 0)
-  const batchFirst = !!idea.ahead && !idea.ahead.batch // the recipe itself is the batch
+  // The recipe scales with the portion; boosters are what their chips say.
+  const totals = Object.fromEntries(
+    MACROS.map((m) => [m, Math.round(tweaked[m] * portion) + added.reduce((n, b) => n + b[m], 0)]),
+  ) as Record<Macro, number>
+  const batchFirst = !!idea.ahead && !idea.ahead.batch // the recipe itself is the batch, so it doesn't scale
+  const scale = (l: Line): Line => (batchFirst ? l : { ...l, text: scaleLine(l.text, portion) })
+  const kcalShare = prefs.goals.kcal && Math.round((totals.kcal / prefs.goals.kcal) * 100)
   const toggle = (id: BoosterId) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
 
   return (
@@ -41,11 +48,12 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
           {added.map((b, i) => <Sticker key={b.id} name={b.sticker} palette={b.palette} tilt={i % 2 ? 10 : -10} className="pop" />)}
         </div>
         <div className="stat-row" aria-live="polite">
-          <span className="badge"><b>{kcal.toLocaleString()}</b>{batchFirst ? 'kcal each' : 'kcal'}</span>
-          <span className="badge badge-pink"><b>{sum('protein')}g</b>protein</span>
-          <span className="badge badge-sky"><b>{sum('carbs')}g</b>carbs</span>
-          <span className="badge badge-mint"><b>{sum('fat')}g</b>fat</span>
+          <span className="badge"><b>{totals.kcal.toLocaleString()}</b>{batchFirst && portion === 1 ? 'kcal each' : 'kcal'}</span>
+          <span className="badge badge-pink"><b>{totals.protein}g</b>protein</span>
+          <span className="badge badge-sky"><b>{totals.carbs}g</b>carbs</span>
+          <span className="badge badge-mint"><b>{totals.fat}g</b>fat</span>
         </div>
+        <DayShare totals={totals} goals={prefs.goals} onGoals={onGoals} />
       </div>
       <div className="idea-body">
         <p className="kicker">{category} · {idea.time}</p>
@@ -57,12 +65,29 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
           </p>
         )}
 
-        <CleanSlider idea={idea} notch={notch} setNotch={setNotch} tweaked={tweaked} boosters={boosters} />
+        <CleanSlider idea={idea} notch={notch} setNotch={setNotch} tweaked={tweaked} boosters={boosters} portion={portion} />
+
+        <div className="portion">
+          <span className="portion-label" id={`portion-${idea.slug}`}>Portion</span>
+          <div className="pills" role="group" aria-labelledby={`portion-${idea.slug}`}>
+            {PORTIONS.map((f) => (
+              <button key={f} type="button" className="pill" aria-pressed={portion === f} onClick={() => setPortion(f)}>{portionLabel(f)}</button>
+            ))}
+          </div>
+          <span className="portion-sum" aria-live="polite">
+            {batchFirst && `${formatAmount(portion)} ${portion > 1 ? idea.ahead!.unit : idea.ahead!.unit.replace(/s$/, '')} · `}
+            {totals.kcal.toLocaleString()} kcal{kcalShare ? ` · ${kcalShare}% of your day` : ''}
+          </span>
+        </div>
 
         <div className="recipe">
           <div>
-            <h3>You need{batchFirst && <span className="plus">makes {idea.ahead!.makes}</span>}</h3>
-            <ul>{tweaked.ingredients.map((l, i) => <RecipeLine key={i} line={l} />)}</ul>
+            <h3>
+              You need
+              {batchFirst && <span className="plus">makes {idea.ahead!.makes}</span>}
+              {!batchFirst && portion !== 1 && <span className="plus">{portionLabel(portion)}</span>}
+            </h3>
+            <ul>{tweaked.ingredients.map((l, i) => <RecipeLine key={i} line={scale(l)} />)}</ul>
           </div>
           <div>
             <h3>Do this</h3>
@@ -99,27 +124,46 @@ const CLEAN_BOOSTERS: BoosterId[] = ['oil', 'avocado', 'nuts']
 
 // Where the recipe sits from dirty to clean, and a slider that changes it:
 // each notch is one of the idea's tweaks, applied to the recipe below.
-function CleanSlider({ idea, notch, setNotch, tweaked, boosters }: {
+function CleanSlider({ idea, notch, setNotch, tweaked, boosters, portion }: {
   idea: Idea
   notch: number
   setNotch: (n: number) => void
   tweaked: Tweaked
   boosters: Booster[]
+  portion: number
 }) {
   const min = -(idea.clean.dirtier?.length ?? 0)
   const max = idea.clean.cleaner?.length ?? 0
-  const kcal = tweaked.kcal - idea.kcal
-  const grams = (['protein', 'carbs', 'fat'] as const).map((key) => `${signed(tweaked[key] - idea[key])} g ${key}`)
-  // Cleaner usually means fewer calories; point at the clean way back up.
-  const makeUp = notch > 0 && kcal <= -50
-    ? boosters.filter((b) => CLEAN_BOOSTERS.includes(b.id)).map((b) => b.name.toLowerCase())
-    : []
+  const notches = Array.from({ length: max - min + 1 }, (_, i) => min + i)
+  const cleanBoosters = boosters.filter((b) => CLEAN_BOOSTERS.includes(b.id)).map((b) => b.name.toLowerCase())
+
+  // What each notch says. They're all laid out in the same spot, with only
+  // the current one visible, so the box is as tall as the longest and
+  // doesn't jump while you drag.
+  const say = (n: number) => {
+    if (n === 0) return <p>{idea.clean.why}</p>
+    const t = n === notch ? tweaked : tweakIdea(idea, n)
+    const kcal = Math.round((t.kcal - idea.kcal) * portion)
+    const grams = (['protein', 'carbs', 'fat'] as const).map((key) => `${signed(Math.round((t[key] - idea[key]) * portion))} g ${key}`)
+    // Cleaner usually means fewer calories; point at the clean way back up.
+    const makeUp = n > 0 && kcal <= -50 ? cleanBoosters : []
+    return (
+      <>
+        <p><b>{n > 0 ? 'Cleaner' : 'Dirtier'}:</b> {t.says.join(' · ')}.</p>
+        <p className="clean-delta">
+          {signed(kcal)} kcal · {grams.join(' · ')} compared with the recipe as written.
+          {makeUp.length > 0 && ` Win them back with ${orList(makeUp)} from Make it bigger.`}
+        </p>
+      </>
+    )
+  }
 
   return (
     <div className={`clean-box clean-${tweaked.score}`}>
       <p className="clean-scale">
         <CleanMeter score={tweaked.score} big /> <b>{CLEAN_LEVELS[tweaked.score]}</b>
-        {notch !== 0 && <button type="button" className="link-btn" onClick={() => setNotch(0)}>Back to as written</button>}
+        <button type="button" className={`link-btn${notch === 0 ? ' is-off' : ''}`} aria-hidden={notch === 0} tabIndex={notch === 0 ? -1 : 0}
+          onClick={() => setNotch(0)}>Back to as written</button>
       </p>
       {min < max && (
         <div className="clean-slider">
@@ -129,7 +173,7 @@ function CleanSlider({ idea, notch, setNotch, tweaked, boosters }: {
               aria-label="Make it dirtier or cleaner"
               aria-valuetext={`${CLEAN_LEVELS[tweaked.score]}${notch === 0 ? ', as written' : `: ${tweaked.says.join(', ')}`}`} />
             <div className="clean-ticks" aria-hidden="true">
-              {Array.from({ length: max - min + 1 }, (_, i) => min + i).map((n) => (
+              {notches.map((n) => (
                 <span key={n} className={n === 0 ? 'as-written' : undefined}>{n === 0 && 'as written'}</span>
               ))}
             </div>
@@ -137,17 +181,43 @@ function CleanSlider({ idea, notch, setNotch, tweaked, boosters }: {
           <span className="clean-end-clean" aria-hidden="true">Cleaner</span>
         </div>
       )}
-      {notch === 0 ? (
-        <p>{idea.clean.why}</p>
-      ) : (
-        <>
-          <p><b>{notch > 0 ? 'Cleaner' : 'Dirtier'}:</b> {tweaked.says.join(' · ')}.</p>
-          <p className="clean-delta">
-            {signed(kcal)} kcal · {grams.join(' · ')} compared with the recipe as written.
-            {makeUp.length > 0 && ` Win them back with ${orList(makeUp)} from Make it bigger.`}
-          </p>
-        </>
-      )}
+      <div className="clean-says">
+        {notches.map((n) => (
+          <div key={n} className={n === notch ? undefined : 'is-off'} aria-hidden={n !== notch}>{say(n)}</div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// What share of the day's goals this portion covers, one bar per goal that's
+// set. Without goals, a way to set them.
+function DayShare({ totals, goals, onGoals }: { totals: Record<Macro, number>; goals: Goals; onGoals: () => void }) {
+  const set = MACROS.filter((m) => goals[m])
+  if (!set.length) {
+    return (
+      <div className="day day-empty">
+        <p>How much of your day is this?</p>
+        <button type="button" className="btn btn-quiet" onClick={onGoals}>Set daily goals</button>
+      </div>
+    )
+  }
+  return (
+    <div className="day">
+      <p className="day-head"><b>Of your day</b> <button type="button" className="link-btn" onClick={onGoals}>Edit goals</button></p>
+      <ul className="day-rows">
+        {set.map((m) => {
+          const share = Math.round((totals[m] / goals[m]!) * 100)
+          return (
+            <li key={m} className={`day-row day-${m}`} title={`${totals[m].toLocaleString()} of ${goals[m]!.toLocaleString()} ${MACRO_NAMES[m].unit}`}>
+              <span className="day-name">{MACRO_NAMES[m].label}</span>
+              <span className="day-bar" aria-hidden="true"><i className={share > 0 ? 'has' : undefined} style={{ width: `${Math.min(share, 100)}%` }} /></span>
+              <b className="day-pct">{share}%</b>
+              <span className="visually-hidden">: {totals[m].toLocaleString()} of {goals[m]!.toLocaleString()} {MACRO_NAMES[m].unit}</span>
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }

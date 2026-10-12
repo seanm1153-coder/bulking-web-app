@@ -413,6 +413,26 @@ img { display: block; max-width: 100%; }
   font-size: 16px;
 }
 .tastes > .error { margin-bottom: 18px; }
+.goals-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 22px; padding: 12px 12px 12px 18px; border: var(--line); border-radius: 22px; background: var(--white); box-shadow: 4px 4px 0 var(--ink); }
+.goals-bar b { font-weight: 800; font-size: 19px; text-transform: uppercase; font-variation-settings: "wdth" 80; }
+.goals-bar span { flex: 1 1 24ch; font-weight: 600; }
+.goals-bar .btn { box-shadow: 3px 3px 0 var(--ink); }
+
+/* Goals dialog */
+.goals-modal { width: min(560px, calc(100vw - 32px)); }
+.goals-sub { margin-top: 10px; color: var(--muted); }
+.goals-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 20px 0 8px; }
+.goal > span:first-child::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 7px; border: 2px solid var(--ink); border-radius: 50%; vertical-align: -1px; }
+.goal-kcal > span:first-child::before { background: var(--butter); }
+.goal-protein > span:first-child::before { background: var(--pink); }
+.goal-carbs > span:first-child::before { background: var(--sky); }
+.goal-fat > span:first-child::before { background: var(--mint); }
+.goal-input { position: relative; display: flex; align-items: center; }
+.goal-input input { padding-right: 48px; }
+.goal-input i { position: absolute; right: 14px; font-style: normal; font-weight: 600; color: var(--muted); pointer-events: none; }
+.goals-help { margin-top: 8px; font-size: 14px; color: var(--muted); }
+.goals-help .link-btn { color: var(--ink); }
+.goals .form-actions { margin-top: 20px; }
 .rated { margin-top: 24px; }
 .rated h3 { font-weight: 800; font-size: 26px; line-height: 1; font-variation-settings: "wdth" 75; text-transform: uppercase; }
 .rated-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 0; padding: 0; list-style: none; }
@@ -651,7 +671,12 @@ body.is-dropping .drop-hint { display: grid; }
 .clean-scale { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 8px; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .clean-scale b { margin-left: 6px; font-weight: 800; font-size: 19px; letter-spacing: 0; text-transform: none; color: var(--ink); }
 .clean-scale .link-btn { margin-left: auto; font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--ink); }
-.clean-box > p + p { margin-top: 6px; }
+.clean-box > p + p, .clean-says p + p { margin-top: 6px; }
+/* Every notch's text sits in the same grid cell, only the current one shown,
+   so the box keeps the height of the longest and doesn't jump. */
+.clean-says { display: grid; }
+.clean-says > div { grid-area: 1 / 1; }
+.clean-says > .is-off, .clean-scale .is-off { visibility: hidden; }
 .clean-delta { font-size: 15px; color: var(--muted); }
 
 /* The slider: a flat track colored by where the recipe sits now, a sticker
@@ -682,6 +707,31 @@ body.is-dropping .drop-hint { display: grid; }
 .clean-ticks .as-written { font-size: 11px; white-space: nowrap; color: var(--ink); }
 .clean-ticks .as-written::before { position: absolute; top: 0; }
 .clean-ticks .as-written { padding-top: 11px; }
+
+.portion { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 22px; }
+.portion-label { font-weight: 800; font-size: 19px; text-transform: uppercase; font-variation-settings: "wdth" 80; letter-spacing: 0.02em; }
+.portion .pill { padding: 5px 14px; }
+.portion-sum { font-weight: 700; font-size: 15px; }
+
+/* Share of the day's goals, under the badges. */
+.day { align-self: stretch; padding: 12px 14px 14px; border: 2.5px solid var(--ink); border-radius: 18px; background: var(--white); }
+.day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; font-size: 15px; }
+.day-head b { font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; font-size: 14px; }
+.day-head .link-btn { font-size: 14px; }
+.day-rows { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.day-row { display: grid; grid-template-columns: 64px minmax(0, 1fr) 48px; align-items: center; gap: 8px; }
+.day-name { font-weight: 700; font-size: 14px; }
+.day-bar { height: 14px; border: 2px solid var(--ink); border-radius: 999px; background: var(--paper); overflow: hidden; }
+.day-bar i { display: block; height: 100%; }
+.day-kcal i { background: var(--butter); }
+.day-protein i { background: var(--pink); }
+.day-carbs i { background: var(--sky); }
+.day-fat i { background: var(--mint); }
+/* The pastels are faint against the track, so the end of each fill gets an
+   ink edge; the label and percentage carry the rest. */
+.day-bar i.has { border-right: 2px solid var(--ink); }
+.day-pct { font-weight: 800; font-size: 15px; text-align: right; }
+.day-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; font-weight: 700; font-size: 15px; }
 
 .line-changed { padding: 1px 5px; margin-left: -5px; border-radius: 5px; background: var(--butter); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .line-gone { color: var(--muted); text-decoration: line-through; }

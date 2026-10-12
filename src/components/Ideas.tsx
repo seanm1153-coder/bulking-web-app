@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CLEAN_LEVELS, IDEA_CATEGORIES, KEEPS, type Idea, type IdeaCategory } from '../data/ideas'
+import type { Goals } from '../lib/preferences'
 import { Sticker } from '../stickers/Sticker'
 import { CleanMeter } from './CleanMeter'
 
@@ -14,11 +15,13 @@ const ORDERS: { id: Order; label: string }[] = [
 ]
 
 // `ideas` is already filtered by preferences and thumbs down; `hidden` says
-// what was left out. `liked` is the slugs with a thumbs up.
-export function Ideas({ ideas, hidden, liked, onOpen }: {
+// what was left out. `liked` is the slugs with a thumbs up. With a calorie
+// goal, each card says what share of the day it is.
+export function Ideas({ ideas, hidden, liked, goals, onOpen }: {
   ideas: Idea[]
   hidden: { count: number; labels: string[]; down: number }
   liked: Set<string>
+  goals: Goals
   onOpen: (idea: Idea) => void
 }) {
   const [filter, setFilter] = useState<IdeaCategory | 'all'>('all')
@@ -77,7 +80,7 @@ export function Ideas({ ideas, hidden, liked, onOpen }: {
             )}
             <button type="button" className="idea-open idea-title" onClick={() => onOpen(idea)}>{idea.title}</button>
             <span className="idea-stats">
-              <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.time}
+              <b>{idea.kcal.toLocaleString()}</b> kcal{goals.kcal ? ` · ${Math.round((idea.kcal / goals.kcal) * 100)}% of your day` : ''} · {idea.time}
             </span>
             <span className="idea-macros">{idea.protein} g protein · {idea.carbs} g carbs · {idea.fat} g fat</span>
             <span className="idea-clean">

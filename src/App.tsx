@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Boosters } from './components/Boosters'
+import { GoalsDialog } from './components/GoalsDialog'
 import { Hero } from './components/Hero'
 import { IdeaDialog } from './components/IdeaDialog'
 import { Ideas } from './components/Ideas'
@@ -73,6 +74,7 @@ export default function App() {
     return url ? { url } : null
   })
   const [setupOpen, setSetupOpen] = useState(false)
+  const [goalsOpen, setGoalsOpen] = useState(false)
   const [quizOpen, setQuizOpen] = useState(false)
   const [video, setVideo] = useState<Link | null>(null)
 
@@ -139,6 +141,7 @@ export default function App() {
             <a href="#saved">Saved</a>
           </nav>
           <div className="top-actions">
+            <button type="button" className="btn btn-quiet" onClick={() => setGoalsOpen(true)}>Goals</button>
             <button type="button" className="btn btn-quiet" onClick={() => setSetupOpen(true)}>Setup</button>
             <button type="button" className="btn btn-tomato" onClick={() => setLinkForm({})}>+ Save a link</button>
           </div>
@@ -147,9 +150,9 @@ export default function App() {
 
       <main className="wrap" id="top">
         <Hero onIdea={(mode) => feedMe(mode)} onSave={() => setLinkForm({})} />
-        <Ideas ideas={ideas} hidden={hidden} liked={liked} onOpen={(i) => setIdea({ idea: i, random: null })} />
+        <Ideas ideas={ideas} hidden={hidden} liked={liked} goals={prefs.goals} onOpen={(i) => setIdea({ idea: i, random: null })} />
         <Boosters boosters={boosters} />
-        <Tastes prefs={prefs} token={token} setToken={setToken} onQuiz={() => setQuizOpen(true)} />
+        <Tastes prefs={prefs} token={token} setToken={setToken} onQuiz={() => setQuizOpen(true)} onGoals={() => setGoalsOpen(true)} />
         <Library
           api={api}
           onAdd={() => setLinkForm({})}
@@ -179,11 +182,14 @@ export default function App() {
           onClose={() => setIdea(null)}
           onAnother={idea.random ? () => feedMe(idea.random!, idea.idea) : undefined}
           anotherLabel={idea.random === 'clean' ? 'Another clean one' : idea.random === 'dirty' ? 'Another dirty one' : undefined}
+          onGoals={() => setGoalsOpen(true)}
         />
       )}
       {linkForm && <LinkDialog api={api} initialUrl={linkForm.url} editing={linkForm.editing} onClose={() => setLinkForm(null)} />}
       {quizOpen && <SwipeQuiz prefs={prefs} token={token} setToken={setToken} onClose={() => setQuizOpen(false)} />}
       {setupOpen && <SetupDialog api={api} onClose={() => setSetupOpen(false)} />}
+      {/* After the idea dialog, so it opens on top of it. */}
+      {goalsOpen && <GoalsDialog prefs={prefs} token={token} setToken={setToken} onClose={() => setGoalsOpen(false)} />}
       {video && <VideoDialog link={video} onClose={() => setVideo(null)} />}
     </>
   )

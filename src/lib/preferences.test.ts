@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addPreferences, avoidedIn, avoidMatcher, newPreference, parsePreferences, rate, type Preference } from './preferences'
+import { addPreferences, avoidedIn, avoidMatcher, cleanGoals, newPreference, parsePreferences, rate, type Preference } from './preferences'
 
 const fruit: Preference = { id: 'f', kind: 'avoid', label: 'Fruit', terms: ['fruit', 'banana', 'berry', 'berries', 'strawberry', 'apple', 'jam', 'lemon'] }
 const mushrooms: Preference = { id: 'm', kind: 'avoid', label: 'Mushroom' }
@@ -58,6 +58,13 @@ describe('preferences file', () => {
     expect(parsePreferences({ preferences: [fruit] })).toEqual({ preferences: [fruit], ratings: [] })
     const good = { idea: 'chicken-alfredo', title: 'Chicken alfredo', thumb: 'up', on: '2026-10-11' }
     expect(parsePreferences({ preferences: [], ratings: [good, { idea: 'x', thumb: 'meh' }, null] }).ratings).toEqual([good])
+  })
+
+  it('loads daily goals, keeping only whole positive numbers, and leaves them out when there are none', () => {
+    expect(parsePreferences({ preferences: [], goals: { kcal: 3200.4, protein: 180, carbs: -5, fat: 'lots', extra: 1 } }).goals).toEqual({ kcal: 3200, protein: 180 })
+    expect(parsePreferences({ preferences: [], goals: {} })).not.toHaveProperty('goals')
+    expect(parsePreferences({ preferences: [] })).not.toHaveProperty('goals')
+    expect(cleanGoals(null)).toEqual({})
   })
 
   it('keeps the why behind a thumbs down, and drops it when malformed', () => {

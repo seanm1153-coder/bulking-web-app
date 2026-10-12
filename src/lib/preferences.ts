@@ -39,9 +39,34 @@ export const REASONS: { label: string; note: string }[] = [
   { label: 'Too pricey', note: 'Cheap, everyday ingredients' },
 ]
 
+// Daily targets, all optional: calories, and protein, carbs and fat in grams.
+// Recipes show what share of each they make up.
+export const MACROS = ['kcal', 'protein', 'carbs', 'fat'] as const
+export type Macro = (typeof MACROS)[number]
+export type Goals = Partial<Record<Macro, number>>
+
+export const MACRO_NAMES: Record<Macro, { label: string; unit: string }> = {
+  kcal: { label: 'Calories', unit: 'kcal' },
+  protein: { label: 'Protein', unit: 'g' },
+  carbs: { label: 'Carbs', unit: 'g' },
+  fat: { label: 'Fat', unit: 'g' },
+}
+
 export interface PreferencesFile {
   preferences: Preference[]
   ratings: Rating[]
+  goals?: Goals // left out until set
+}
+
+// Keeps whole, positive goals and drops anything else.
+export function cleanGoals(raw: unknown): Goals {
+  const goals: Goals = {}
+  if (!raw || typeof raw !== 'object') return goals
+  for (const key of MACROS) {
+    const value = (raw as Record<string, unknown>)[key]
+    if (typeof value === 'number' && Number.isFinite(value) && value > 0) goals[key] = Math.round(value)
+  }
+  return goals
 }
 
 const KINDS: PrefKind[] = ['avoid', 'love', 'note']
@@ -56,12 +81,13 @@ function cleanRating({ reasons, note, ...rating }: Rating): Rating {
   }
 }
 
-// Older files have no `ratings`, and older ratings no `reasons` or `note`;
-// they load without them.
+// Older files have no `ratings` or `goals`, and older ratings no `reasons`
+// or `note`; they load without them.
 export const parsePreferences = (raw: unknown): PreferencesFile => {
   const file = raw as Partial<PreferencesFile> | undefined
   const list = file?.preferences
   const ratings = file?.ratings
+  const goals = cleanGoals(file?.goals)
   return {
     preferences: Array.isArray(list)
       ? list.filter((p): p is Preference => !!p && typeof p.label === 'string' && KINDS.includes(p.kind))
@@ -69,6 +95,7 @@ export const parsePreferences = (raw: unknown): PreferencesFile => {
     ratings: Array.isArray(ratings)
       ? ratings.filter((r): r is Rating => !!r && typeof r.idea === 'string' && (r.thumb === 'up' || r.thumb === 'down')).map(cleanRating)
       : [],
+    ...(Object.keys(goals).length ? { goals } : {}),
   }
 }
 

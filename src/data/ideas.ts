@@ -331,7 +331,7 @@ export const IDEAS: Idea[] = [
             ['1 tbsp honey', null],
             ['Drizzle with honey and finish with flaky salt.', 'Finish with flaky salt, and have the shake with it.'],
           ],
-          add: ['A whey shake made with 1 cup whole milk'],
+          add: ['1 scoop whey shaken with 1 cup whole milk'],
         },
         { to: 4, says: 'No butter', kcal: -100, protein: 0, carbs: 0, fat: -12,
           swap: [
@@ -409,7 +409,7 @@ export const IDEAS: Idea[] = [
       cleaner: [
         { to: 5, says: 'Whey in the milk', kcal: 120, protein: 24, carbs: 3, fat: 2,
           swap: [
-            ['1 cup whole milk', '1 cup whole milk with a scoop of whey stirred in'],
+            ['1 cup whole milk', '1 cup whole milk with 1 scoop whey stirred in'],
             ['Drink the milk with it.', 'Drink the whey milk with it.'],
           ],
         },
@@ -1153,7 +1153,7 @@ export const IDEAS: Idea[] = [
           swap: [
             ['2 tbsp marshmallow creme', null],
             ['2 tbsp peanut butter', '4 tbsp peanut butter'],
-            ['1 cup whole milk', '1 cup whole milk with a scoop of whey stirred in'],
+            ['1 cup whole milk', '1 cup whole milk with 1 scoop whey stirred in'],
             ['Spread peanut butter on one slice and marshmallow creme on the other.', 'Spread the peanut butter on both slices.'],
             ['Drink the milk with it.', 'Drink the whey milk with it.'],
           ],
