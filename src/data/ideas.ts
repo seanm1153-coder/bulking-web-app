@@ -27,6 +27,7 @@ export interface Idea {
   ingredients: string[]
   steps: string[]
   boost: BoosterId[]
+  source?: { name: string; url: string } // the recipe this one was adapted from
 }
 
 export interface Booster {
@@ -117,10 +118,19 @@ export const IDEAS: Idea[] = [
   {
     slug: 'smash-burger', title: 'Double smash burger', category: 'meals', sticker: 'burger',
     kcal: 880, protein: 53, time: '20 min',
-    blurb: 'Two thin crispy patties, melty cheese, pickles and sauce.',
-    ingredients: ['6 oz 80/20 ground beef, as two balls', '2 slices American cheese', '1 brioche bun', '1 tbsp burger sauce', 'Pickles and lettuce'],
-    steps: ['Get a pan or griddle very hot.', 'Smash each ball flat, season, and cook 2 minutes. Flip and add cheese.', 'Stack on a toasted bun with sauce, pickles and lettuce.'],
+    blurb: 'Two thin crispy patties, melty cheese, raw onion and sauce.',
+    ingredients: ['6 oz 80/20 ground beef, as two balls', '2 slices American cheese', '1 brioche bun', '1 tbsp burger sauce', 'Lettuce and thinly sliced onion'],
+    steps: ['Get a pan or griddle very hot.', 'Smash each ball flat, season, and cook 2 minutes. Flip and add cheese.', 'Stack on a toasted bun with sauce, lettuce and onion.'],
     boost: ['cheese', 'milk', 'avocado'],
+  },
+  {
+    slug: 'animal-style-fries', title: 'Animal-style loaded fries', category: 'meals', sticker: 'fries',
+    kcal: 1450, protein: 55, time: '35 min',
+    blurb: 'Crispy fries buried under cheesy beef, sweet browned onions and a tangy burger sauce. A whole meal on one tray.',
+    ingredients: ['1 large russet potato (about 300 g), cut into thin fries', '1 tbsp olive oil', '6 oz 80/20 ground beef', '2 slices American cheese', '¼ cup shredded cheddar', '1 onion, finely diced', '1 tbsp butter', '1 tsp brown sugar', '2 tsp balsamic vinegar', 'Smoked paprika, garlic powder and salt', 'Sauce: 2 tbsp mayo, 3 tbsp whole-milk Greek yogurt, 1 tbsp ketchup, 1 tsp yellow mustard, ½ tsp Worcestershire sauce, 1 tsp white vinegar, hot sauce to taste'],
+    steps: ['Heat the oven to 425°F (or the air fryer to 400°F). Toss the fries with the oil, a pinch of smoked paprika and salt, and cook 25 to 30 minutes (18 to 20 in the air fryer), shaking halfway, until crisp.', 'Meanwhile, cook the onion in the butter over medium-low with the brown sugar and a pinch of salt for about 15 minutes, until soft and deep golden. Stir in the balsamic for the last minute.', 'Stir the sauce together.', 'Brown the beef in a hot pan, breaking it up, and season with garlic powder, smoked paprika and salt. Press it flat, lay the cheese slices on top, and cover for a minute to melt.', 'Pile the fries on a plate, scatter the cheddar over them, then add the cheesy beef, the onions and plenty of sauce.'],
+    boost: ['cheese', 'butter', 'milk'],
+    source: { name: 'Panacea Palm', url: 'https://www.youtube.com/shorts/1L2Ke_9VfnM' },
   },
   {
     slug: 'pepperoni-pizza', title: 'Pepperoni pizza night', category: 'meals', sticker: 'pizza',
@@ -138,6 +148,15 @@ export const IDEAS: Idea[] = [
     ingredients: ['4 oz dry fettuccine', '5 oz chicken breast', '½ cup alfredo sauce', '2 tbsp parmesan', 'Black pepper and parsley'],
     steps: ['Season and sear the chicken, then slice it.', 'Cook the fettuccine and toss it with the warm sauce.', 'Top with chicken, parmesan, pepper and parsley.'],
     boost: ['cream', 'butter', 'cheese'],
+  },
+  {
+    slug: 'chicken-pad-thai', title: 'Chicken pad thai', category: 'meals', sticker: 'noodles',
+    kcal: 1390, protein: 70, time: '25 min, plus soaking',
+    blurb: 'A takeout-sized plate of sweet, salty, spicy noodles with chicken, egg, tofu and a lot of peanuts.',
+    ingredients: ['120 g dry pad thai rice noodles', '6 oz chicken thigh, sliced thin', '¼ tsp baking soda', '2 eggs', '2 oz firm or smoked tofu, cubed', '1 shallot, sliced', '1 cup bean sprouts', 'A small bunch of chives, cut long', '3 tbsp chopped roasted peanuts', '2 tbsp neutral oil', 'Chili flakes, as much as you like', 'Sauce: 1½ tbsp brown sugar, 1 tbsp fish sauce, 1 tbsp soy sauce, 1 tbsp rice vinegar, 1 tbsp lime juice, 2 tbsp water'],
+    steps: ['Soak the noodles in warm water for an hour, or boil them for 3 to 4 minutes until just bendy. Drain and rinse.', 'Toss the chicken with the baking soda and a pinch of salt and leave it 10 minutes. It stays juicy that way. Stir the sauce together.', 'Get a wok or big pan very hot with half the oil. Sear the chicken and tofu until golden, add the shallot for a minute, then push it all to one side.', 'Add the rest of the oil and scramble the eggs in the space.', 'Add the noodles and sauce and toss for 2 to 3 minutes until the sauce is soaked up. Fold in the bean sprouts and chives.', 'Pile it up and finish with the peanuts and chili flakes.'],
+    boost: ['pb', 'nuts', 'oil'],
+    source: { name: 'Panacea Palm', url: 'https://www.youtube.com/shorts/UCoZdTQeeHA' },
   },
   {
     slug: 'beef-rice-bowl', title: 'Ground beef and rice bowl', category: 'meals', sticker: 'bowl',

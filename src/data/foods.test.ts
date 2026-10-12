@@ -17,10 +17,12 @@ describe('quiz foods', () => {
     }
   })
 
-  // Nothing on the Never list gets a card, and so never gets drawn.
+  // Nothing on the Never list gets a card in the quiz, and so never gets drawn.
+  // (Foods you've said Never to stay in FOODS; the deck leaves them out.)
   it('follows preferences.json', () => {
-    const avoid = avoidMatcher(parsePreferences(saved).preferences)
-    for (const f of FOODS) expect(avoid?.(f.label) ?? null, f.label).toBeNull()
+    const prefs = parsePreferences(saved).preferences
+    const avoid = avoidMatcher(prefs)
+    for (const f of quizDeck(prefs)) expect(avoid?.(f.label) ?? null, f.label).toBeNull()
   })
 
   it('matches its own label, so a Never hides what it says', () => {

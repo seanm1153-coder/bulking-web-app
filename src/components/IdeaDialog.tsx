@@ -42,6 +42,11 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
         <p className="kicker">{category} · {idea.time}</p>
         <h2>{idea.title}</h2>
         <p className="idea-blurb">{idea.blurb}</p>
+        {idea.source && (
+          <p className="idea-source">
+            Adapted from <a href={idea.source.url} target="_blank" rel="noopener noreferrer">{idea.source.name}’s recipe ↗</a>, made bigger for bulking.
+          </p>
+        )}
 
         <div className="recipe">
           <div>

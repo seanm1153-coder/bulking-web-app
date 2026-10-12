@@ -581,6 +581,8 @@ body.is-dropping .drop-hint { display: grid; }
 .kicker { font-weight: 700; font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .idea-modal h2 { margin-top: 8px; font-size: 54px; }
 .idea-blurb { margin-top: 12px; font-size: 19px; max-width: 52ch; }
+.idea-source { margin-top: 8px; font-size: 15px; font-weight: 600; color: var(--muted); }
+.idea-source a { color: var(--ink); }
 .recipe { display: grid; grid-template-columns: 1fr 1.3fr; gap: 28px; margin: 26px 0; padding: 22px 0; border-block: 2.5px solid var(--ink); }
 .recipe ul, .recipe ol { margin: 10px 0 0; padding-left: 20px; }
 .recipe li { margin-bottom: 6px; font-size: 16.5px; }

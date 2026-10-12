@@ -30,6 +30,7 @@ export const PALETTE = {
   fish: '#9ED2F6', fishFin: '#2B45E0',
   tomato: '#FF5A36', leaf: '#3E9A3A',
   pickle: '#6FA03A', pickleBump: '#4C7A25',
+  fry: '#FFD447', carton: '#FF5A36', noodle: '#E8B46A', noodleLine: '#B8642B', takeout: '#FFFFFF',
 }
 
 export type Role = keyof typeof PALETTE
@@ -187,7 +188,7 @@ export const STICKERS = {
     r(90, 26, 20, 36, 4, 'oil'),
     p('M68 84 Q68 62 90 60 H110 Q132 62 132 84 V180 Q132 190 122 190 H78 Q68 190 68 180 Z', 'oil'),
     r(76, 110, 48, 54, 6, 'cream'),
-    e(98, 138, 10, 14, 'olive', { transform: 'rotate(-20 98 138)' }),
+    p('M98 122 Q114 142 98 154 Q82 142 98 122 Z', 'oil'),
     p('M104 124 Q118 110 122 124 Q112 132 104 124 Z', 'lettuce'),
   ],
   butter: [
@@ -276,6 +277,28 @@ export const STICKERS = {
     c(90, 48, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true), c(112, 74, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true),
     c(88, 98, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true), c(110, 124, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true),
     c(90, 150, 5, 'pickleBump', { transform: 'rotate(28 100 102)' }, true), c(112, 168, 4, 'pickleBump', { transform: 'rotate(28 100 102)' }, true),
+  ],
+  fries: [
+    r(54, 34, 18, 86, 5, 'fry', { transform: 'rotate(-14 63 77)' }),
+    r(76, 20, 18, 96, 5, 'fry', { transform: 'rotate(-5 85 68)' }),
+    r(100, 16, 18, 100, 5, 'fry', { transform: 'rotate(4 109 66)' }),
+    r(124, 26, 18, 90, 5, 'fry', { transform: 'rotate(13 133 71)' }),
+    p('M50 74 Q66 58 84 70 Q100 56 118 70 Q136 58 152 76 L150 92 Q132 100 120 90 Q104 102 90 90 Q72 100 56 90 Z', 'cheese'),
+    c(76, 76, 7, 'patty', {}, true), c(108, 72, 7, 'patty', {}, true), c(134, 80, 6, 'patty', {}, true), c(94, 84, 5, 'patty', {}, true),
+    p('M36 92 Q100 122 164 92 L148 188 H52 Z', 'carton'),
+    line('M58 150 H142', 'cream', 7, '2 14'),
+  ],
+  noodles: [
+    r(118, 4, 11, 96, 5.5, 'chopstick', { transform: 'rotate(22 123 52)' }),
+    r(138, 12, 11, 90, 5.5, 'chopstick', { transform: 'rotate(34 143 57)' }),
+    p('M44 80 Q50 42 100 40 Q150 42 156 80 Z', 'noodle'),
+    line('M60 72 Q74 52 90 68 T120 64 T146 72', 'noodleLine', 3.5),
+    line('M70 58 Q84 46 100 56 T130 52', 'noodleLine', 3.5),
+    c(84, 50, 5, 'nut', {}, true), c(118, 48, 5, 'nut', {}, true), c(70, 66, 4, 'lettuce', {}, true), c(132, 62, 4, 'lettuce', {}, true),
+    p('M30 60 L60 72 L44 80 Z', 'takeout'),
+    p('M170 60 L140 72 L156 80 Z', 'takeout'),
+    p('M40 78 H160 L146 188 H54 Z', 'takeout'),
+    c(100, 132, 20, 'carton'),
   ],
 } satisfies Record<string, Shape[]>
 
