@@ -1,6 +1,6 @@
 # Roadmap
 
-Ideas for what Surplus could do next, from a brainstorm on 2026-10-11. Built so far: #11, #12 and #15. Everything stays food-only, about ideas rather than tracking, and in the sticker style. New recipes always follow [`public/data/preferences.json`](public/data/preferences.json).
+Ideas for what Surplus could do next, from a brainstorm on 2026-10-11. Built so far: #11, #12, #15 and #17. Everything stays food-only, about ideas rather than tracking, and in the sticker style. New recipes always follow [`public/data/preferences.json`](public/data/preferences.json).
 
 **Up next:** set up the Claude API (see [below](#claude-api)), then build #1, #5 and #7.
 
@@ -46,6 +46,7 @@ Ideas for what Surplus could do next, from a brainstorm on 2026-10-11. Built so 
 | 14 | **Eating-out cheat sheet** | The biggest orders at places like Chipotle, Chick-fil-A and Panera. | No |
 | 15 | **Make ahead** ✅ | Freezer, fridge and kit labels on ideas, a filter, batch recipes with storage and reheating, and batch calorie totals. | No |
 | 16 | **Prep-day planner** | Pick two or three make-ahead ideas and get one shopping list, a prep order and the total stocked. Would replace #13. | No |
+| 17 | **Clean or dirty** ✅ | Every idea scored from Filthy to Clean with a reason and cleaner swaps, Feed me clean or dirty, and cleanest- or dirtiest-first sorting. | No |
 
 ⭐ = top picks. ✅ = built. #1 is what the preferences are for and keeps the ideas growing. #5 makes saved links useful for cooking, not just bookmarking. #7 is the most fun, needs no setup and suits the stickers.
 

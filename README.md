@@ -4,8 +4,9 @@ A home base for eating more on purpose: big meal ideas, calorie boosters, your f
 
 ## What's on the page
 
-- **Ideas.** Twenty-three big meals (breakfasts, meals, shakes, snacks), each with a recipe. Open one to tap boosters onto it and watch the total climb. **Feed me an idea** picks one at random.
-- **Make ahead.** Sixteen ideas can be made in a batch: ❄️ freezes, 🥡 keeps in the fridge, or 🫙 packs into dry kits. The **Make ahead** filter shows just those. Each one's recipe has the batch to make, how long it keeps, how to reheat it, what to add fresh, and the calories in the whole batch.
+- **Ideas.** Twenty-seven big meals (breakfasts, meals, shakes, snacks), each with a recipe. Open one to tap boosters onto it and watch the total climb. **Feed me clean** and **Feed me dirty** pick one at random from either end of the scale below.
+- **Clean or dirty.** Every idea sits on a five-step scale from Filthy to Clean, with a line on why and a **Make it cleaner** swap or two. It's a judgment call, like the calories, scored on protein per calorie, whole vs. processed food, added sugar, fiber and plants, and where the fat comes from. Sort Ideas cleanest or dirtiest first.
+- **Make ahead.** Eighteen ideas can be made in a batch: ❄️ freezes, 🥡 keeps in the fridge, or 🫙 packs into dry kits. The **Make ahead** filter shows just those. Each one's recipe has the batch to make, how long it keeps, how to reheat it, what to add fresh, and the calories in the whole batch.
 - **Boosters.** Ten easy add-ons (peanut butter, whole milk, olive oil, butter…) with what each one adds.
 - **Your tastes.** Foods you never want, foods you love, and notes. Ideas and boosters that mention anything on the Never list are hidden, and new recipes are written to follow all of it.
 - **Swipe quiz.** About 30 food stickers to swipe right (love), left (never) or up (fine either way), then save in one go. Foods already in your tastes are skipped. Start it from **Your tastes**.

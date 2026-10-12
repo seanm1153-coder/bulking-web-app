@@ -301,6 +301,12 @@ export const STICKERS = {
     p('M40 78 H160 L146 188 H54 Z', 'takeout'),
     c(100, 132, 20, 'carton'),
   ],
+  steak: [
+    p('M40 70 C40 40 90 30 120 40 C160 52 178 80 168 116 C160 150 120 172 84 166 C46 160 26 130 32 104 C34 90 40 84 40 70 Z', 'baconFat'),
+    p('M54 76 C56 54 92 46 118 54 C150 64 162 88 154 114 C146 142 116 156 86 152 C58 148 42 126 46 106 C48 94 54 88 54 76 Z', 'meatball'),
+    line('M66 92 L100 136 M88 72 L128 128 M116 64 L148 106', 'chocDark', 6),
+    p('M138 150 Q164 132 182 148 Q164 166 138 150 Z', 'basil'),
+  ],
   // A baking dish: baked ziti as drawn; mac and cheese recolors it.
   tray: [
     r(4, 80, 30, 20, 10, 'dish'), r(166, 80, 30, 20, 10, 'dish'),

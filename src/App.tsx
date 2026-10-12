@@ -10,7 +10,7 @@ import { SwipeQuiz } from './components/SwipeQuiz'
 import { Tastes } from './components/Tastes'
 import { ThumbsDownDialog } from './components/ThumbsDown'
 import { VideoDialog } from './components/VideoDialog'
-import { BOOSTERS, boosterText, IDEAS, ideaText, type Idea } from './data/ideas'
+import { BOOSTERS, boosterText, IDEAS, ideaText, isClean, type Idea } from './data/ideas'
 import { findUrl, normalizeUrl, type Link } from './lib/links'
 import { avoidedIn } from './lib/preferences'
 import { useLinks } from './lib/useLinks'
@@ -29,6 +29,8 @@ function sharedUrl(): string | null {
   }
   return null
 }
+
+type FeedMode = 'clean' | 'dirty'
 
 function randomIdea(ideas: Idea[], except?: Idea): Idea | null {
   const pool = ideas.length > 1 ? ideas.filter((i) => i !== except) : ideas
@@ -59,11 +61,14 @@ export default function App() {
     }
   }, [avoid, prefList, ratings])
   const liked = useMemo(() => new Set(ratings.filter((r) => r.thumb === 'up').map((r) => r.idea)), [ratings])
-  const feedMe = (except?: Idea) => {
-    const next = randomIdea(ideas, except)
-    setIdea(next ? { idea: next, random: true } : null)
+  // Clean picks from Clean and Mostly clean; dirty from everything else. If
+  // that end is empty (all hidden), anything goes.
+  const feedMe = (mode: FeedMode, except?: Idea) => {
+    const pool = ideas.filter((i) => isClean(i) === (mode === 'clean'))
+    const next = randomIdea(pool.length ? pool : ideas, except)
+    setIdea(next ? { idea: next, random: mode } : null)
   }
-  const [idea, setIdea] = useState<{ idea: Idea; random: boolean } | null>(null)
+  const [idea, setIdea] = useState<{ idea: Idea; random: FeedMode | null } | null>(null)
   const [linkForm, setLinkForm] = useState<LinkForm | null>(() => {
     const url = sharedUrl()
     return url ? { url } : null
@@ -143,8 +148,8 @@ export default function App() {
       </header>
 
       <main className="wrap" id="top">
-        <Hero onIdea={() => feedMe()} onSave={() => setLinkForm({})} />
-        <Ideas ideas={ideas} hidden={hidden} liked={liked} onOpen={(i) => setIdea({ idea: i, random: false })} onNope={setNope} />
+        <Hero onIdea={(mode) => feedMe(mode)} onSave={() => setLinkForm({})} />
+        <Ideas ideas={ideas} hidden={hidden} liked={liked} onOpen={(i) => setIdea({ idea: i, random: null })} onNope={setNope} />
         <Boosters boosters={boosters} />
         <Tastes prefs={prefs} token={token} setToken={setToken} onQuiz={() => setQuizOpen(true)} />
         <Library
@@ -174,7 +179,8 @@ export default function App() {
           token={token}
           setToken={setToken}
           onClose={() => setIdea(null)}
-          onAnother={idea.random ? () => feedMe(idea.idea) : undefined}
+          onAnother={idea.random ? () => feedMe(idea.random!, idea.idea) : undefined}
+          anotherLabel={idea.random === 'clean' ? 'Another clean one' : idea.random === 'dirty' ? 'Another dirty one' : undefined}
         />
       )}
       {nope && <ThumbsDownDialog key={nope.slug} idea={nope} prefs={prefs} token={token} setToken={setToken} onClose={() => setNope(null)} />}

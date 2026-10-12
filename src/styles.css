@@ -97,6 +97,7 @@ img { display: block; max-width: 100%; }
 .btn-tomato { background: var(--tomato); }
 .btn-cream { background: var(--cream); }
 .btn-butter { background: var(--butter); }
+.btn-mint { background: var(--mint); }
 .btn-quiet { background: var(--white); box-shadow: 3px 3px 0 var(--ink); padding: 9px 18px; font-size: 16px; }
 
 .pills { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -117,6 +118,11 @@ img { display: block; max-width: 100%; }
 .pill-n { font-weight: 600; font-size: 14px; opacity: 0.6; }
 .pill-radio input { position: absolute; opacity: 0; pointer-events: none; }
 .pill-radio:has(input:focus-visible) { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.pill-select { position: relative; padding-right: 32px; }
+.pill-select::after { content: "▾"; position: absolute; right: 13px; pointer-events: none; }
+.pill-select select { appearance: none; padding: 0; border: 0; background: transparent; font-weight: 700; cursor: pointer; }
+.pill-select select:focus { outline: none; }
+.pill-select:has(select:focus-visible) { outline: 3px solid var(--cobalt); outline-offset: 2px; }
 
 .link-btn { padding: 0; border: 0; background: none; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
@@ -299,6 +305,17 @@ img { display: block; max-width: 100%; }
   font-weight: 600;
   font-size: 15px;
 }
+.idea-clean { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-weight: 700; font-size: 14px; }
+
+/* Dirty-to-clean meter: five pips, filled up to the score. */
+.clean-meter { display: inline-flex; gap: 3px; }
+.clean-meter i { width: 12px; height: 10px; border: 2px solid var(--ink); border-radius: 3px; background: var(--white); }
+.clean-meter i.on { background: var(--ink); }
+.clean-meter-big { gap: 4px; }
+.clean-meter-big i { width: 22px; height: 16px; border-width: 2.5px; border-radius: 5px; }
+.clean-meter-big.clean-1 i.on, .clean-meter-big.clean-2 i.on { background: var(--tomato); }
+.clean-meter-big.clean-3 i.on { background: var(--butter); }
+.clean-meter-big.clean-4 i.on, .clean-meter-big.clean-5 i.on { background: var(--mint); }
 .idea-stats b { font-weight: 800; font-size: 36px; line-height: 1; font-variation-settings: "wdth" 75; }
 
 /* ---------- Boosters ---------- */
@@ -645,6 +662,11 @@ body.is-dropping .drop-hint { display: grid; }
 .idea-blurb { margin-top: 12px; font-size: 19px; max-width: 52ch; }
 .idea-source { margin-top: 8px; font-size: 15px; font-weight: 600; color: var(--muted); }
 .idea-source a { color: var(--ink); }
+.clean-box { margin-top: 18px; padding: 14px 18px; border: 2.5px solid var(--ink); border-radius: 20px; background: var(--white); font-size: 16px; }
+.clean-scale { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 8px; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.clean-scale b { margin-left: 6px; font-weight: 800; font-size: 19px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.clean-swaps { margin-top: 6px; color: var(--muted); }
+.clean-swaps b { color: var(--ink); }
 .recipe { display: grid; grid-template-columns: 1fr 1.3fr; gap: 28px; margin: 26px 0; padding: 22px 0; border-block: 2.5px solid var(--ink); }
 .recipe ul, .recipe ol { margin: 10px 0 0; padding-left: 20px; }
 .recipe li { margin-bottom: 6px; font-size: 16.5px; }

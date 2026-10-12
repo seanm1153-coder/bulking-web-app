@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { foodsIn, type Food } from '../data/foods'
-import { IDEA_CATEGORIES, ideaText, KEEPS, type Ahead, type Booster, type BoosterId, type Idea } from '../data/ideas'
+import { CLEAN_LEVELS, IDEA_CATEGORIES, ideaText, KEEPS, type Ahead, type Booster, type BoosterId, type Idea } from '../data/ideas'
 import type { Thumb } from '../lib/preferences'
 import type { PreferencesApi } from '../lib/usePreferences'
 import { Sticker } from '../stickers/Sticker'
+import { CleanMeter } from './CleanMeter'
 import { ConnectForm } from './ConnectForm'
 import { Modal } from './Modal'
 import { ThumbsDownForm } from './ThumbsDown'
 
-export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClose, onAnother }: {
+export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClose, onAnother, anotherLabel = 'Another idea' }: {
   idea: Idea
   boosters: Booster[]
   prefs: PreferencesApi
@@ -16,6 +17,7 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   setToken: (token: string) => void
   onClose: () => void
   onAnother?: () => void
+  anotherLabel?: string
 }) {
   const [picked, setPicked] = useState<BoosterId[]>([])
   const category = IDEA_CATEGORIES.find((c) => c.id === idea.category)?.label
@@ -50,6 +52,17 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
           </p>
         )}
 
+        <div className={`clean-box clean-${idea.clean.score}`}>
+          <p className="clean-scale">
+            <span>Dirty</span> <CleanMeter score={idea.clean.score} big /> <span>Clean</span>
+            <b>{CLEAN_LEVELS[idea.clean.score]}</b>
+          </p>
+          <p>{idea.clean.why}</p>
+          {idea.clean.swaps && (
+            <p className="clean-swaps"><b>Make it cleaner:</b> {idea.clean.swaps.join(' ')}</p>
+          )}
+        </div>
+
         <div className="recipe">
           <div>
             <h3>You need{batchFirst && <span className="plus">makes {idea.ahead!.makes}</span>}</h3>
@@ -78,7 +91,7 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
         <Thumbs idea={idea} prefs={prefs} token={token} setToken={setToken} />
 
         <p className="fine">Calories and protein are rough estimates.</p>
-        {onAnother && <button type="button" className="btn btn-tomato" onClick={onAnother}>Another idea</button>}
+        {onAnother && <button type="button" className="btn btn-tomato" onClick={onAnother}>{anotherLabel}</button>}
       </div>
     </Modal>
   )

@@ -1,9 +1,17 @@
 import { useState } from 'react'
-import { IDEA_CATEGORIES, KEEPS, type Idea, type IdeaCategory } from '../data/ideas'
+import { CLEAN_LEVELS, IDEA_CATEGORIES, KEEPS, type Idea, type IdeaCategory } from '../data/ideas'
 import { Sticker } from '../stickers/Sticker'
+import { CleanMeter } from './CleanMeter'
 
 const CARD_COLORS = ['var(--butter)', 'var(--pink)', 'var(--mint)', 'var(--sky)', 'var(--tomato)']
 const TILTS = [-4, 3, -2, 5, -5, 2]
+
+type Order = 'usual' | 'clean' | 'dirty'
+const ORDERS: { id: Order; label: string }[] = [
+  { id: 'usual', label: 'Usual order' },
+  { id: 'clean', label: 'Cleanest first' },
+  { id: 'dirty', label: 'Dirtiest first' },
+]
 
 // `ideas` is already filtered by preferences and thumbs down; `hidden` says
 // what was left out. `liked` is the slugs with a thumbs up. The 👎 on a card
@@ -17,7 +25,10 @@ export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
 }) {
   const [filter, setFilter] = useState<IdeaCategory | 'all'>('all')
   const [aheadOnly, setAheadOnly] = useState(false) // on top of the category
-  const shown = ideas.filter((i) => (filter === 'all' || i.category === filter) && (!aheadOnly || i.ahead))
+  const [order, setOrder] = useState<Order>('usual')
+  const filtered = ideas.filter((i) => (filter === 'all' || i.category === filter) && (!aheadOnly || i.ahead))
+  // Sort is stable, so ties keep the usual order.
+  const shown = order === 'usual' ? filtered : [...filtered].sort((a, b) => (order === 'clean' ? b.clean.score - a.clean.score : a.clean.score - b.clean.score))
 
   return (
     <section className="section" id="ideas" aria-labelledby="ideas-h">
@@ -37,6 +48,12 @@ export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
           <button type="button" className="pill pill-ahead" aria-pressed={aheadOnly} onClick={() => setAheadOnly((on) => !on)}>
             {KEEPS.freezer.icon} Make ahead <span className="pill-n">{ideas.filter((i) => i.ahead).length}</span>
           </button>
+          <label className="pill pill-select">
+            <span className="visually-hidden">Sort ideas</span>
+            <select value={order} onChange={(e) => setOrder(e.target.value as Order)}>
+              {ORDERS.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+            </select>
+          </label>
         </div>
       </header>
 
@@ -65,6 +82,9 @@ export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
             <button type="button" className="idea-open idea-title" onClick={() => onOpen(idea)}>{idea.title}</button>
             <span className="idea-stats">
               <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.protein} g protein · {idea.time}
+            </span>
+            <span className="idea-clean">
+              <CleanMeter score={idea.clean.score} /> {CLEAN_LEVELS[idea.clean.score]}
             </span>
           </article>
         ))}
