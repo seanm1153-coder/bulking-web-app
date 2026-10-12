@@ -77,8 +77,9 @@ export function Ideas({ ideas, hidden, liked, onOpen }: {
             )}
             <button type="button" className="idea-open idea-title" onClick={() => onOpen(idea)}>{idea.title}</button>
             <span className="idea-stats">
-              <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.protein} g protein · {idea.time}
+              <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.time}
             </span>
+            <span className="idea-macros">{idea.protein} g protein · {idea.carbs} g carbs · {idea.fat} g fat</span>
             <span className="idea-clean">
               <CleanMeter score={idea.clean.score} /> {CLEAN_LEVELS[idea.clean.score]}
             </span>

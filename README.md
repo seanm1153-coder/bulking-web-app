@@ -13,7 +13,7 @@ A home base for eating more on purpose: big meal ideas, calorie boosters, your f
 - **Thumbs.** 👎 in any recipe hides it and asks why: quick reasons like *Too sweet* or *Too much work*, foods in it to add to Never, and an optional note. 👍 in a recipe offers the foods in it as one-tap Love picks. When a pattern shows up across your thumbs (the same reason twice, or a food in two ideas you turned down), **Your tastes** suggests it as a Note, Never or Love.
 - **Saved.** Videos, recipes and posts you've saved, with categories, notes, favorites and search. YouTube videos play in place; everything else opens in a new tab.
 
-Calorie and protein numbers are rough estimates.
+Calories and macros (protein, carbs, fat) are rough estimates from typical ingredient values, and a test checks they add up.
 
 Ideas for what to build next are in [`ROADMAP.md`](ROADMAP.md).
 

@@ -4,7 +4,7 @@ import { hintDetail, listOf, tasteHints } from './hints'
 import type { Idea } from './ideas'
 
 const idea = (slug: string, ...ingredients: string[]): Idea => ({
-  slug, title: slug, category: 'meals', sticker: 'bowl', kcal: 900, protein: 40, time: '10 min',
+  slug, title: slug, category: 'meals', sticker: 'bowl', kcal: 900, protein: 40, carbs: 90, fat: 40, time: '10 min',
   blurb: '', ingredients, steps: [], boost: [], clean: { score: 3, why: '' },
 })
 const ideas = [

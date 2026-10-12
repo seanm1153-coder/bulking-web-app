@@ -54,6 +54,32 @@ describe('tweakIdea', () => {
   })
 })
 
+// 4 kcal per gram of protein and carbs, 9 per gram of fat. Fiber and rounding
+// keep it from being exact, but numbers that don't add up are wrong.
+const fromMacros = (m: { protein: number; carbs: number; fat: number }) => 4 * m.protein + 4 * m.carbs + 9 * m.fat
+
+describe('macros add up to the calories', () => {
+  it.each(IDEAS.map((i) => [i.title, i] as const))('%s', (_, idea) => {
+    expect(Math.abs(fromMacros(idea) - idea.kcal) / idea.kcal).toBeLessThanOrEqual(0.1)
+  })
+
+  it.each(BOOSTERS.map((b) => [b.name, b] as const))('booster %s', (_, b) => {
+    expect(Math.abs(fromMacros(b) - b.kcal) / b.kcal).toBeLessThanOrEqual(0.12)
+  })
+
+  it('on every notch, and nothing goes below zero', () => {
+    for (const idea of IDEAS) {
+      for (const t of [...(idea.clean.cleaner ?? []), ...(idea.clean.dirtier ?? [])]) {
+        expect(Math.abs(fromMacros(t) - t.kcal), `${idea.slug}: ${t.says}`).toBeLessThanOrEqual(Math.max(30, Math.abs(t.kcal) * 0.25))
+      }
+      for (let n = -(idea.clean.dirtier?.length ?? 0); n <= (idea.clean.cleaner?.length ?? 0); n++) {
+        const { protein, carbs, fat } = tweakIdea(idea, n)
+        expect(Math.min(protein, carbs, fat), `${idea.slug} at ${n}`).toBeGreaterThanOrEqual(0)
+      }
+    }
+  })
+})
+
 describe('ideas data', () => {
   it('has unique slugs, real stickers and boosters that exist', () => {
     expect(new Set(IDEAS.map((i) => i.slug)).size).toBe(IDEAS.length)
