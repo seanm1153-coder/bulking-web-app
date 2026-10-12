@@ -8,7 +8,7 @@ A home base for eating more on purpose: big meal ideas, calorie boosters, your f
 - **Boosters.** Ten easy add-ons (peanut butter, whole milk, olive oil, butter…) with what each one adds.
 - **Your tastes.** Foods you never want, foods you love, and notes. Ideas and boosters that mention anything on the Never list are hidden, and new recipes are written to follow all of it.
 - **Swipe quiz.** About 30 food stickers to swipe right (love), left (never) or up (fine either way), then save in one go. Foods already in your tastes are skipped. Start it from **Your tastes**.
-- **Thumbs.** 👍 or 👎 on any idea. A thumbs down hides the idea; either one offers the foods in it as one-tap Love or Never picks.
+- **Thumbs.** 👎 on any idea card (or in its recipe) hides it and asks why: quick reasons like *Too sweet* or *Too much work*, foods in it to add to Never, and an optional note. 👍 in a recipe offers the foods in it as one-tap Love picks. When a pattern shows up across your thumbs (the same reason twice, or a food in two ideas you turned down), **Your tastes** suggests it as a Note, Never or Love.
 - **Saved.** Videos, recipes and posts you've saved, with categories, notes, favorites and search. YouTube videos play in place; everything else opens in a new tab.
 
 Calorie and protein numbers are rough estimates.
@@ -17,7 +17,7 @@ Ideas for what to build next are in [`ROADMAP.md`](ROADMAP.md).
 
 ## Preferences
 
-[`public/data/preferences.json`](public/data/preferences.json) holds your tastes. Edit them from the **Your tastes** section (it saves the same way links do) or by hand. Each entry has a `kind` (`avoid`, `love` or `note`), a short `label`, and optionally a `detail` explaining it. `avoid` entries can list `terms`, the words that count as a match; otherwise the label is used. Matching is whole-word and catches plurals. `allow` lists phrases that are fine even though they contain a term, like `"lemon juice"` under Fruit. Thumbs on ideas are kept in the same file under `ratings`.
+[`public/data/preferences.json`](public/data/preferences.json) holds your tastes. Edit them from the **Your tastes** section (it saves the same way links do) or by hand. Each entry has a `kind` (`avoid`, `love` or `note`), a short `label`, and optionally a `detail` explaining it. `avoid` entries can list `terms`, the words that count as a match; otherwise the label is used. Matching is whole-word and catches plurals. `allow` lists phrases that are fine even though they contain a term, like `"lemon juice"` under Fruit. Thumbs on ideas are kept in the same file under `ratings`; a thumbs down can carry `reasons` and a `note`.
 
 `src/data/ideas.test.ts` checks every idea and booster against the Never list, so a recipe that breaks a preference fails the build.
 
@@ -70,6 +70,7 @@ The build uses relative paths (`base: './'`), so it works at any `https://<user>
 | `src/stickers/Sticker.tsx` | Draws a sticker: white die-cut border, then ink outlines. |
 | `src/data/ideas.ts` | The meal ideas and boosters. Tested against your preferences. |
 | `src/data/foods.ts` | Foods for the swipe quiz and the picks after a thumbs up or down. |
+| `src/data/hints.ts` | Suggestions for your tastes from patterns in your thumbs. |
 | `src/lib/links.ts` | Link types, categories, URL cleanup, YouTube and display helpers. |
 | `src/lib/github.ts` | Reading and committing data files through the GitHub API. |
 | `src/lib/useRepoFile.ts` | Loads and commits one data file; shares the access key. |

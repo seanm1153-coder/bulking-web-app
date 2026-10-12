@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { avoidedIn, avoidMatcher, newPreference, parsePreferences, rate, type Preference } from './preferences'
+import { addPreferences, avoidedIn, avoidMatcher, newPreference, parsePreferences, rate, type Preference } from './preferences'
 
 const fruit: Preference = { id: 'f', kind: 'avoid', label: 'Fruit', terms: ['fruit', 'banana', 'berry', 'berries', 'strawberry', 'apple', 'jam', 'lemon'] }
 const mushrooms: Preference = { id: 'm', kind: 'avoid', label: 'Mushroom' }
@@ -60,13 +60,41 @@ describe('preferences file', () => {
     expect(parsePreferences({ preferences: [], ratings: [good, { idea: 'x', thumb: 'meh' }, null] }).ratings).toEqual([good])
   })
 
+  it('keeps the why behind a thumbs down, and drops it when malformed', () => {
+    const down = { idea: 'snack-plate', title: 'Cheese and salami snack plate', thumb: 'down', on: '2026-10-12' }
+    const why = { ...down, reasons: ['Too rich', 7, ' '], note: ' Too salty for me ' }
+    expect(parsePreferences({ preferences: [], ratings: [why] }).ratings).toEqual([{ ...down, reasons: ['Too rich'], note: 'Too salty for me' }])
+    expect(parsePreferences({ preferences: [], ratings: [{ ...down, reasons: 'Too rich', note: 3 }] }).ratings).toEqual([down])
+  })
+
   it('sets, replaces and clears a rating', () => {
     const idea = { slug: 'smash-burger', title: 'Double smash burger' }
     const day = new Date(2026, 9, 11)
-    const up = rate([], idea, 'up', day)
+    const up = rate([], idea, 'up', {}, day)
     expect(up).toEqual([{ idea: 'smash-burger', title: 'Double smash burger', thumb: 'up', on: '2026-10-11' }])
-    expect(rate(up, idea, 'down', day).map((r) => r.thumb)).toEqual(['down'])
+    expect(rate(up, idea, 'down', {}, day).map((r) => r.thumb)).toEqual(['down'])
     expect(rate(up, idea, null)).toEqual([])
+  })
+
+  it('saves reasons and a note with a thumbs down, leaving out empty ones', () => {
+    const idea = { slug: 'smash-burger', title: 'Double smash burger' }
+    const day = new Date(2026, 9, 12)
+    expect(rate([], idea, 'down', { reasons: ['Too rich'], note: '  too greasy ' }, day)).toEqual([
+      { idea: 'smash-burger', title: 'Double smash burger', thumb: 'down', on: '2026-10-12', reasons: ['Too rich'], note: 'too greasy' },
+    ])
+    expect(rate([], idea, 'down', { reasons: [], note: ' ' }, day)[0]).not.toHaveProperty('reasons')
+    expect(rate([], idea, 'down', { reasons: [], note: ' ' }, day)[0]).not.toHaveProperty('note')
+  })
+
+  it('adds preferences without doubling up on a label', () => {
+    const list = addPreferences([fruit, spicy], [
+      { kind: 'avoid', label: 'Eggs', terms: ['egg'] },
+      { kind: 'love', label: 'spicy food' },
+      { kind: 'note', label: 'Keep recipes quick', detail: 'From two thumbs down' },
+    ], new Date(2026, 9, 12))
+    expect(list.map((p) => p.label)).toEqual(['Fruit', 'Spicy food', 'Eggs', 'Keep recipes quick'])
+    expect(list[2]).toMatchObject({ kind: 'avoid', terms: ['egg'], added: '2026-10-12' })
+    expect(list[3]).toMatchObject({ kind: 'note', detail: 'From two thumbs down' })
   })
 
   it('makes a new preference with a readable id', () => {

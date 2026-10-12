@@ -8,6 +8,7 @@ import { LinkDialog } from './components/LinkDialog'
 import { SetupDialog } from './components/SetupDialog'
 import { SwipeQuiz } from './components/SwipeQuiz'
 import { Tastes } from './components/Tastes'
+import { ThumbsDownDialog } from './components/ThumbsDown'
 import { VideoDialog } from './components/VideoDialog'
 import { BOOSTERS, boosterText, IDEAS, ideaText, type Idea } from './data/ideas'
 import { findUrl, normalizeUrl, type Link } from './lib/links'
@@ -69,6 +70,7 @@ export default function App() {
   })
   const [setupOpen, setSetupOpen] = useState(false)
   const [quizOpen, setQuizOpen] = useState(false)
+  const [nope, setNope] = useState<Idea | null>(null) // 👎 from an idea card
   const [video, setVideo] = useState<Link | null>(null)
 
   // Drop ?add= from the address bar once it has been read, so a reload
@@ -142,7 +144,7 @@ export default function App() {
 
       <main className="wrap" id="top">
         <Hero onIdea={() => feedMe()} onSave={() => setLinkForm({})} />
-        <Ideas ideas={ideas} hidden={hidden} liked={liked} onOpen={(i) => setIdea({ idea: i, random: false })} />
+        <Ideas ideas={ideas} hidden={hidden} liked={liked} onOpen={(i) => setIdea({ idea: i, random: false })} onNope={setNope} />
         <Boosters boosters={boosters} />
         <Tastes prefs={prefs} token={token} setToken={setToken} onQuiz={() => setQuizOpen(true)} />
         <Library
@@ -175,6 +177,7 @@ export default function App() {
           onAnother={idea.random ? () => feedMe(idea.idea) : undefined}
         />
       )}
+      {nope && <ThumbsDownDialog key={nope.slug} idea={nope} prefs={prefs} token={token} setToken={setToken} onClose={() => setNope(null)} />}
       {linkForm && <LinkDialog api={api} initialUrl={linkForm.url} editing={linkForm.editing} onClose={() => setLinkForm(null)} />}
       {quizOpen && <SwipeQuiz prefs={prefs} token={token} setToken={setToken} onClose={() => setQuizOpen(false)} />}
       {setupOpen && <SetupDialog api={api} onClose={() => setSetupOpen(false)} />}

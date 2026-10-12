@@ -239,12 +239,38 @@ img { display: block; max-width: 100%; }
 .idea-card:hover { transform: translate(-2px, -3px); box-shadow: 9px 9px 0 var(--ink); }
 .idea-card:hover .sticker, .boost-card:hover .sticker, .link-card:hover .link-media .sticker { transform: rotate(calc(var(--tilt) * -1)) scale(1.06); }
 .idea-card { position: relative; }
+.idea-card:has(.idea-open:focus-visible) { outline: 3px solid var(--cobalt); outline-offset: 3px; }
 .idea-card .sticker { width: 76%; margin: 0 auto 12px; }
+/* The title is the button; its ::after stretches over the card so a click
+   anywhere opens the recipe. The 👎 sits above it. */
+.idea-open { padding: 0; border: 0; background: none; text-align: left; cursor: pointer; }
+.idea-open::after { content: ""; position: absolute; inset: 0; border-radius: 29px; }
+.idea-open:focus-visible { outline: none; }
+.nope-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2.5px solid var(--ink);
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 2px 2px 0 var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 150ms var(--pop), background-color 150ms ease;
+}
+.nope-btn:hover { background: var(--tomato); transform: rotate(10deg) scale(1.08); }
 .liked-tag {
   position: absolute;
   top: 14px;
-  right: 14px;
+  left: 14px;
   z-index: 1;
+  pointer-events: none;
   padding: 3px 11px;
   border: 2.5px solid var(--ink);
   border-radius: 999px;
@@ -252,7 +278,7 @@ img { display: block; max-width: 100%; }
   box-shadow: 2px 2px 0 var(--ink);
   font-weight: 800;
   font-size: 14px;
-  transform: rotate(6deg);
+  transform: rotate(-6deg);
 }
 .idea-title {
   margin-top: auto;
@@ -388,8 +414,31 @@ img { display: block; max-width: 100%; }
 .rated-up { background: var(--mint); }
 .rated-down { background: var(--paper); }
 .rated-item b { font-weight: 700; }
+.rated-item small { max-width: 34ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; color: var(--muted); }
+.rated-item { max-width: 100%; }
 .rated-item .x { width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; font-size: 20px; line-height: 1; cursor: pointer; }
 .rated-item .x:hover { background: var(--cream); }
+.hint-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); gap: 12px; margin: 12px 0 0; padding: 0; list-style: none; }
+.hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 8px 10px 14px;
+  border: 2.5px solid var(--ink);
+  border-radius: 20px;
+  background: var(--white);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.hint .sticker { flex: none; width: 48px; height: 48px; filter: none; }
+.hint > div { flex: 1 1 14ch; min-width: 0; }
+.hint b { display: block; font-weight: 800; font-size: 19px; line-height: 1.15; }
+.hint small { display: block; margin-top: 2px; font-size: 14px; line-height: 1.35; color: var(--muted); }
+.hint-avoid .btn { background: var(--tomato); }
+.hint-love .btn { background: var(--mint); }
+.hint-note .btn { background: var(--sky); }
+.hint .x { flex: none; width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
+.hint .x:hover { background: var(--cream); }
 
 /* ---------- Saved links ---------- */
 
@@ -634,7 +683,23 @@ body.is-dropping .drop-hint { display: grid; }
 .thumbs-more p { font-size: 16px; font-weight: 600; }
 .thumbs-more .boost-chips { margin: 10px 0 0; }
 .food-love:hover { background: var(--mint); }
-.food-avoid:hover { background: var(--tomato); }
+.food-avoid:hover, .food-avoid[aria-pressed="true"] { background: var(--tomato); }
+
+/* Thumbs down: why */
+.nope-modal { width: min(640px, calc(100vw - 32px)); }
+.nope-head { display: flex; align-items: center; gap: 18px; }
+.nope-head .sticker { flex: none; width: 96px; }
+.nope-head h2 { margin-top: 4px; font-size: 40px; }
+.nope-sub { margin-top: 14px; font-size: 16px; color: var(--muted); }
+.nope { display: flex; flex-direction: column; gap: 18px; margin-top: 20px; }
+.thumbs-more .nope { margin-top: 0; }
+.nope-group { margin: 0; padding: 0; border: 0; min-width: 0; }
+.nope-group legend { padding: 0; margin-bottom: 10px; font-weight: 700; font-size: 15px; }
+.nope-group .boost-chips { margin: 0; }
+@media (max-width: 640px) {
+  .nope-head .sticker { width: 72px; }
+  .nope-head h2 { font-size: 32px; }
+}
 @media (max-width: 860px) {
   .idea-modal .modal-inner { grid-template-columns: minmax(0, 1fr); }
   .stat-row .badge { width: 104px; height: 104px; }

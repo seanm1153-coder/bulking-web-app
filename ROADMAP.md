@@ -36,7 +36,7 @@ Ideas for what Surplus could do next, from a brainstorm on 2026-10-11. Built so 
 | # | Idea | What it does | Claude API? |
 | --- | --- | --- | --- |
 | 11 | **Swipe quiz** ✅ | Swipe right or left on about 30 sticker cards to fill in Love and Never automatically. | No |
-| 12 | **Thumbs on ideas** ✅ | 👍 or 👎 on any recipe, feeding your tastes over time. | No |
+| 12 | **Thumbs on ideas** ✅ | 👍 or 👎 on any recipe, feeding your tastes over time. A 👎 asks why, and patterns turn into suggested tastes. | No |
 
 ### Practical
 

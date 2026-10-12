@@ -6,12 +6,14 @@ const CARD_COLORS = ['var(--butter)', 'var(--pink)', 'var(--mint)', 'var(--sky)'
 const TILTS = [-4, 3, -2, 5, -5, 2]
 
 // `ideas` is already filtered by preferences and thumbs down; `hidden` says
-// what was left out. `liked` is the slugs with a thumbs up.
-export function Ideas({ ideas, hidden, liked, onOpen }: {
+// what was left out. `liked` is the slugs with a thumbs up. The 👎 on a card
+// calls `onNope`.
+export function Ideas({ ideas, hidden, liked, onOpen, onNope }: {
   ideas: Idea[]
   hidden: { count: number; labels: string[]; down: number }
   liked: Set<string>
   onOpen: (idea: Idea) => void
+  onNope: (idea: Idea) => void
 }) {
   const [filter, setFilter] = useState<IdeaCategory | 'all'>('all')
   const shown = filter === 'all' ? ideas : ideas.filter((i) => i.category === filter)
@@ -43,14 +45,17 @@ export function Ideas({ ideas, hidden, liked, onOpen }: {
 
       <div className="idea-grid">
         {shown.map((idea, n) => (
-          <button key={idea.slug} type="button" className="idea-card" style={{ background: CARD_COLORS[n % CARD_COLORS.length] }} onClick={() => onOpen(idea)}>
+          // The open button stretches over the whole card (see .idea-open);
+          // the 👎 sits on top of it.
+          <article key={idea.slug} className="idea-card" style={{ background: CARD_COLORS[n % CARD_COLORS.length] }}>
             {liked.has(idea.slug) && <span className="liked-tag">👍 Liked</span>}
+            <button type="button" className="nope-btn" aria-label={`Thumbs down: ${idea.title}`} title="Not for me" onClick={() => onNope(idea)}>👎</button>
             <Sticker name={idea.sticker} palette={idea.palette} tilt={TILTS[n % TILTS.length]} />
-            <span className="idea-title">{idea.title}</span>
+            <button type="button" className="idea-open idea-title" onClick={() => onOpen(idea)}>{idea.title}</button>
             <span className="idea-stats">
               <b>{idea.kcal.toLocaleString()}</b> kcal · {idea.protein} g protein · {idea.time}
             </span>
-          </button>
+          </article>
         ))}
       </div>
     </section>

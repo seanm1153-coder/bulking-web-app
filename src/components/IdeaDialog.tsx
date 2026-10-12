@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { asPreference, foodsIn, type Food } from '../data/foods'
+import { foodsIn, type Food } from '../data/foods'
 import { IDEA_CATEGORIES, ideaText, type Booster, type BoosterId, type Idea } from '../data/ideas'
 import type { Thumb } from '../lib/preferences'
 import type { PreferencesApi } from '../lib/usePreferences'
 import { Sticker } from '../stickers/Sticker'
 import { ConnectForm } from './ConnectForm'
 import { Modal } from './Modal'
+import { ThumbsDownForm } from './ThumbsDown'
 
 export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClose, onAnother }: {
   idea: Idea
@@ -80,15 +81,17 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   )
 }
 
-// 👍 or 👎 on the idea, then a nudge to turn it into tastes: the foods in the
-// recipe that aren't in your tastes yet, one tap each to Love or Never.
+// 👍 or 👎 on the idea. A 👍 offers the foods in the recipe that aren't in
+// your tastes yet, one tap each to Love; a 👎 asks why first (see ThumbsDown).
 function Thumbs({ idea, prefs, token, setToken }: {
   idea: Idea
   prefs: PreferencesApi
   token: string
   setToken: (token: string) => void
 }) {
-  const thumb = prefs.ratings.find((r) => r.idea === idea.slug)?.thumb
+  const rating = prefs.ratings.find((r) => r.idea === idea.slug)
+  const thumb = rating?.thumb
+  const [asking, setAsking] = useState(false) // the why-form for a 👎
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [added, setAdded] = useState<string[]>([])
@@ -109,16 +112,19 @@ function Thumbs({ idea, prefs, token, setToken }: {
     }
   }
 
-  const press = (t: Thumb) => void run(t, (tok) => prefs.rate(idea, thumb === t ? null : t, tok))
-  const pick = (food: Food, kind: 'love' | 'avoid') =>
+  function press(t: Thumb) {
+    if (t === 'down' && thumb !== 'down') return setAsking((a) => !a)
+    setAsking(false)
+    void run(t, (tok) => prefs.rate(idea, thumb === t ? null : t, tok))
+  }
+  const love = (food: Food) =>
     void run(food.id, async (tok) => {
-      const { terms, allow } = asPreference(food, kind)
-      await prefs.add(kind, food.label, tok, { terms, allow })
-      setAdded((a) => [...a, `${food.label} → ${kind === 'love' ? 'Love' : 'Never'}`])
+      await prefs.add('love', food.label, tok)
+      setAdded((a) => [...a, food.label])
     })
 
-  const foods = thumb ? foodsIn(ideaText(idea), prefs.prefs) : []
-  const kind = thumb === 'up' ? 'love' : 'avoid'
+  const foods = thumb === 'up' ? foodsIn(ideaText(idea), prefs.prefs) : []
+  const why = [...(rating?.reasons ?? []), rating?.note && `“${rating.note}”`].filter(Boolean).join(' · ')
 
   return (
     <div className="thumbs">
@@ -126,16 +132,25 @@ function Thumbs({ idea, prefs, token, setToken }: {
         <h3>Would you make it again?</h3>
         <div className="thumbs-btns" role="group" aria-label="Rate this idea">
           <button type="button" className="thumb thumb-up" aria-pressed={thumb === 'up'} aria-label="Thumbs up" disabled={busy !== null} onClick={() => press('up')}>👍</button>
-          <button type="button" className="thumb thumb-down" aria-pressed={thumb === 'down'} aria-label="Thumbs down" disabled={busy !== null} onClick={() => press('down')}>👎</button>
+          <button type="button" className="thumb thumb-down" aria-pressed={thumb === 'down'} aria-expanded={thumb === 'down' ? undefined : asking} aria-label="Thumbs down" disabled={busy !== null} onClick={() => press('down')}>👎</button>
         </div>
       </div>
-      {thumb === 'down' && <p className="thumbs-note">Hidden from Ideas and Feed me. Undo it here or in Your tastes.</p>}
+      {asking && (
+        <div className="thumbs-more">
+          <ThumbsDownForm idea={idea} prefs={prefs} token={token} setToken={setToken} onDone={() => setAsking(false)} onCancel={() => setAsking(false)} />
+        </div>
+      )}
+      {thumb === 'down' && (
+        <p className="thumbs-note">
+          {why && <>You said: {why}. </>}Hidden from Ideas and Feed me. Undo it here or in Your tastes.
+        </p>
+      )}
       {foods.length > 0 && (
         <div className="thumbs-more">
-          <p>{thumb === 'up' ? 'What did you love about it? Tap to add to Love.' : 'Anything in it you never want? Tap to add to Never.'}</p>
-          <div className="boost-chips" role="group" aria-label={thumb === 'up' ? 'Add to Love' : 'Add to Never'}>
+          <p>What did you love about it? Tap to add to Love.</p>
+          <div className="boost-chips" role="group" aria-label="Add to Love">
             {foods.map((f) => (
-              <button key={f.id} type="button" className={`boost-chip food-chip food-${kind}`} disabled={busy !== null} onClick={() => pick(f, kind)}>
+              <button key={f.id} type="button" className="boost-chip food-chip food-love" disabled={busy !== null} onClick={() => love(f)}>
                 <Sticker name={f.sticker} palette={f.palette} />
                 <span>{busy === f.id ? 'Saving…' : f.label}</span>
               </button>
@@ -143,7 +158,7 @@ function Thumbs({ idea, prefs, token, setToken }: {
           </div>
         </div>
       )}
-      {added.length > 0 && <p className="thumbs-note" aria-live="polite">Added {added.join(', ')}.</p>}
+      {added.length > 0 && <p className="thumbs-note" aria-live="polite">Added {added.join(', ')} to Love.</p>}
       {error && <p className="error" role="alert">{error}</p>}
 
       {pending && (
