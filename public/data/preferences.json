@@ -222,7 +222,14 @@
       "added": "2026-10-12"
     }
   ],
-  "ratings": [],
+  "ratings": [
+    {
+      "idea": "snack-plate",
+      "title": "Cheese and salami snack plate",
+      "thumb": "down",
+      "on": "2026-10-12"
+    }
+  ],
   "goals": {
     "kcal": 2600,
     "protein": 160,
