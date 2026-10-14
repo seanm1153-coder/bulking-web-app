@@ -28,6 +28,7 @@ Run `npm run lint && npm test && npm run build` before committing. CI runs the s
 - The site hides ideas and boosters whose text matches an `avoid` preference (`src/lib/preferences.ts`), and ideas rated down.
 - The swipe quiz, the "what did you love about it?" chips after a thumbs up and the Never picks in the thumbs-down form all use the foods in `src/data/foods.ts`. A Never picked there gets that food's `terms`.
 - The thumbs-down reasons are `REASONS` in `src/lib/preferences.ts`. `src/data/hints.ts` turns patterns across ratings into suggested Never, Love and note entries in Your tastes. The user adds them; nothing is added automatically.
+- Build a day (`src/data/day.ts`, `src/components/BuildDay.tsx`) picks ideas from the visible ones (so Nevers and thumbs-down ideas never appear) and fits portions to `goals`. The built day lives in `localStorage` (`surplus:day`) only; it's for exploring, not tracking, so it's never committed.
 - The deploy workflow runs `scripts/enrich-links.mjs` to fill in `title`, `image`, `site` and `kind`, then commits the file back. The site never fetches link details itself.
 - Stickers are shapes in `src/stickers/shapes.ts`, colored by named roles from `PALETTE`. Recolor a sticker by passing a `palette` override rather than copying its shapes.
 

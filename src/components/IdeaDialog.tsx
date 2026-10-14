@@ -2,15 +2,16 @@ import { useState } from 'react'
 import { foodsIn, type Food } from '../data/foods'
 import { CLEAN_LEVELS, IDEA_CATEGORIES, ideaText, KEEPS, tweakIdea, type Ahead, type Booster, type BoosterId, type Idea, type Line, type Tweaked } from '../data/ideas'
 import { formatAmount, portionLabel, PORTIONS, scaleLine } from '../data/portion'
-import { MACRO_NAMES, MACROS, type Goals, type Macro, type Thumb } from '../lib/preferences'
+import { MACROS, type Macro, type Thumb } from '../lib/preferences'
 import type { PreferencesApi } from '../lib/usePreferences'
 import { Sticker } from '../stickers/Sticker'
 import { CleanMeter } from './CleanMeter'
 import { ConnectForm } from './ConnectForm'
+import { DayBars } from './DayBars'
 import { Modal } from './Modal'
 import { ThumbsDownForm } from './ThumbsDown'
 
-export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClose, onAnother, anotherLabel = 'Another idea', onGoals }: {
+export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClose, onAnother, anotherLabel = 'Another idea', onGoals, startPortion = 1 }: {
   idea: Idea
   boosters: Booster[]
   prefs: PreferencesApi
@@ -20,10 +21,11 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
   onAnother?: () => void
   anotherLabel?: string
   onGoals: () => void
+  startPortion?: number
 }) {
   const [picked, setPicked] = useState<BoosterId[]>([])
   const [notch, setNotch] = useState(0) // on the clean-or-dirty slider; 0 is as written
-  const [portion, setPortion] = useState(1)
+  const [portion, setPortion] = useState(startPortion)
   const category = IDEA_CATEGORIES.find((c) => c.id === idea.category)?.label
 
   // Suggested boosters first, then the rest.
@@ -53,7 +55,7 @@ export function IdeaDialog({ idea, boosters: all, prefs, token, setToken, onClos
           <span className="badge badge-sky"><b>{totals.carbs}g</b>carbs</span>
           <span className="badge badge-mint"><b>{totals.fat}g</b>fat</span>
         </div>
-        <DayShare totals={totals} goals={prefs.goals} onGoals={onGoals} />
+        <DayBars totals={totals} goals={prefs.goals} onGoals={onGoals} />
       </div>
       <div className="idea-body">
         <p className="kicker">{category} · {idea.time}</p>
@@ -190,37 +192,6 @@ function CleanSlider({ idea, notch, setNotch, tweaked, boosters, portion }: {
   )
 }
 
-// What share of the day's goals this portion covers, one bar per goal that's
-// set. Without goals, a way to set them.
-function DayShare({ totals, goals, onGoals }: { totals: Record<Macro, number>; goals: Goals; onGoals: () => void }) {
-  const set = MACROS.filter((m) => goals[m])
-  if (!set.length) {
-    return (
-      <div className="day day-empty">
-        <p>How much of your day is this?</p>
-        <button type="button" className="btn btn-quiet" onClick={onGoals}>Set daily goals</button>
-      </div>
-    )
-  }
-  return (
-    <div className="day">
-      <p className="day-head"><b>Of your day</b> <button type="button" className="link-btn" onClick={onGoals}>Edit goals</button></p>
-      <ul className="day-rows">
-        {set.map((m) => {
-          const share = Math.round((totals[m] / goals[m]!) * 100)
-          return (
-            <li key={m} className={`day-row day-${m}`} title={`${totals[m].toLocaleString()} of ${goals[m]!.toLocaleString()} ${MACRO_NAMES[m].unit}`}>
-              <span className="day-name">{MACRO_NAMES[m].label}</span>
-              <span className="day-bar" aria-hidden="true"><i className={share > 0 ? 'has' : undefined} style={{ width: `${Math.min(share, 100)}%` }} /></span>
-              <b className="day-pct">{share}%</b>
-              <span className="visually-hidden">: {totals[m].toLocaleString()} of {goals[m]!.toLocaleString()} {MACRO_NAMES[m].unit}</span>
-            </li>
-          )
-        })}
-      </ul>
-    </div>
-  )
-}
 
 // An ingredient or step, marked when the slider changed or dropped it.
 function RecipeLine({ line }: { line: Line }) {

@@ -302,6 +302,42 @@ img { display: block; max-width: 100%; }
 .idea-macros { margin-top: 6px; font-weight: 600; font-size: 14px; }
 .idea-stats b { font-weight: 800; font-size: 36px; line-height: 1; font-variation-settings: "wdth" 75; }
 
+/* ---------- Build a day ---------- */
+
+.day-setup { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 22px; margin-bottom: 22px; }
+.day-field { display: flex; flex-direction: column; gap: 6px; }
+.day-field > span { font-weight: 800; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; }
+.day-field input[type="time"] { padding: 6px 12px; border: 2.5px solid var(--ink); border-radius: 999px; background: var(--white); font-weight: 700; font-size: 16px; }
+.day-setup > .btn { margin-left: auto; }
+.day-summary { max-width: 72ch; margin-bottom: 20px; font-size: 18px; }
+.day-timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 18px; margin: 0; padding: 0; list-style: none; }
+.day-slot { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px 14px 16px; border: var(--line); border-radius: 26px; box-shadow: 5px 5px 0 var(--ink); }
+.slot-when { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 6px; }
+.slot-when b { font-weight: 800; font-size: 24px; line-height: 1; font-variation-settings: "wdth" 78; }
+.slot-when span { font-weight: 700; font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; }
+.day-slot .sticker { width: 60%; margin: 2px auto; }
+.slot-title { padding: 0; border: 0; background: none; text-align: left; font-weight: 800; font-size: 19px; line-height: 1.05; font-variation-settings: "wdth" 80; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; cursor: pointer; }
+.slot-portion { display: inline-flex; align-items: center; align-self: flex-start; border: 2.5px solid var(--ink); border-radius: 999px; background: var(--white); overflow: hidden; }
+.slot-portion button { width: 32px; height: 30px; border: 0; background: none; font-weight: 800; font-size: 18px; line-height: 1; cursor: pointer; }
+.slot-portion button:disabled { opacity: 0.3; cursor: default; }
+.slot-portion span { min-width: 40px; text-align: center; font-weight: 800; font-size: 15px; }
+.slot-stats { font-weight: 600; font-size: 14px; }
+.slot-stats b { font-weight: 800; font-size: 22px; font-variation-settings: "wdth" 75; }
+.slot-sofar { margin-top: -4px; font-weight: 600; font-size: 13px; }
+.slot-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+.slot-actions .pill { padding: 4px 11px; font-size: 14px; }
+.day-bottom { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; gap: 20px; margin-top: 26px; }
+.day-total { padding: 16px 20px 18px; box-shadow: 4px 4px 0 var(--ink); }
+.day-values .day-row { grid-template-columns: 70px minmax(0, 1fr) 48px; row-gap: 2px; }
+.day-amounts { grid-column: 2 / -1; font-size: 13px; color: var(--muted); }
+.day-notes { margin: 0; padding: 14px 18px 14px 34px; border: 2.5px solid var(--ink); border-radius: 18px; background: var(--paper); font-size: 15px; }
+.day-notes li + li { margin-top: 8px; }
+.day-nogoals .btn { margin-top: 14px; }
+@media (max-width: 760px) {
+  .day-bottom { grid-template-columns: minmax(0, 1fr); }
+  .day-setup > .btn { margin-left: 0; }
+}
+
 /* ---------- Boosters ---------- */
 
 .boosters {

@@ -7,6 +7,7 @@ A home base for eating more on purpose: big meal ideas, calorie boosters, your f
 - **Ideas.** Thirty-one big meals (breakfasts, meals, shakes, snacks), each with a recipe. Open one to tap boosters onto it and watch the total climb. **Feed me clean** and **Feed me dirty** pick one at random from either end of the scale below.
 - **Clean or dirty.** Every idea sits on a five-step scale from Filthy to Clean, with a line on why. It's a judgment call, like the calories, scored on protein per calorie, whole vs. processed food, added sugar, fiber and plants, and where the fat comes from. In each recipe, a slider makes it cleaner or dirtier: the ingredients and steps swap in place (changes highlighted) and the calories and protein follow. Sort Ideas cleanest or dirtiest first.
 - **Daily goals.** Set your daily calories, protein, carbs and fat (**Goals** in the header, or **Your tastes**). Every recipe then shows what share of your day it covers, and cards show the calorie share.
+- **Build a day.** A sample day of 3–6 meals at real times (from when you get up and go to bed), with portions picked so it adds up to your daily goals. It shows what each meal needs to average, a running total under each one, the whole day against your goals, and what stands out (like fat running high). **Shuffle** for another day, **Keep** meals first, **Swap** one, nudge portions, or lean cleaner or dirtier. It's for getting a feel for your goals, not tracking: the day is remembered in your browser only.
 - **Portion size.** Make any recipe ½×, 1×, 1½× or 2×: the ingredient amounts, calories, macros and share of your day all follow. Recipes written as a batch (like the freezer burritos) count portions instead.
 - **Make ahead.** Twenty ideas can be made in a batch: ❄️ freezes, 🥡 keeps in the fridge, or 🫙 packs into dry kits. The **Make ahead** filter shows just those. Each one's recipe has the batch to make, how long it keeps, how to reheat it, what to add fresh, and the calories in the whole batch.
 - **Boosters.** Ten easy add-ons (peanut butter, whole milk, olive oil, butter…) with what each one adds.
@@ -76,6 +77,7 @@ The build uses relative paths (`base: './'`), so it works at any `https://<user>
 | `src/data/foods.ts` | Foods for the swipe quiz and the picks after a thumbs up or down. |
 | `src/data/hints.ts` | Suggestions for your tastes from patterns in your thumbs. |
 | `src/data/portion.ts` | Scales ingredient lines for a bigger or smaller portion. |
+| `src/data/day.ts` | Build a day: meal times, and picking ideas and portions that add up to the goals. |
 | `src/lib/links.ts` | Link types, categories, URL cleanup, YouTube and display helpers. |
 | `src/lib/github.ts` | Reading and committing data files through the GitHub API. |
 | `src/lib/useRepoFile.ts` | Loads and commits one data file; shares the access key. |
