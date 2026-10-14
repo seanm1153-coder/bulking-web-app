@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Boosters } from './components/Boosters'
+import { BuildDay } from './components/BuildDay'
 import { GoalsDialog } from './components/GoalsDialog'
 import { Hero } from './components/Hero'
 import { IdeaDialog } from './components/IdeaDialog'
@@ -68,7 +69,7 @@ export default function App() {
     const next = randomIdea(pool.length ? pool : ideas, except)
     setIdea(next ? { idea: next, random: mode } : null)
   }
-  const [idea, setIdea] = useState<{ idea: Idea; random: FeedMode | null } | null>(null)
+  const [idea, setIdea] = useState<{ idea: Idea; random: FeedMode | null; portion?: number } | null>(null)
   const [linkForm, setLinkForm] = useState<LinkForm | null>(() => {
     const url = sharedUrl()
     return url ? { url } : null
@@ -136,6 +137,7 @@ export default function App() {
           <a className="logo" href="#top">Surplus<i aria-hidden="true" /></a>
           <nav className="top-nav" aria-label="Sections">
             <a href="#ideas">Ideas</a>
+            <a href="#day">Day</a>
             <a href="#boosters">Boosters</a>
             <a href="#tastes">Tastes</a>
             <a href="#saved">Saved</a>
@@ -151,6 +153,7 @@ export default function App() {
       <main className="wrap" id="top">
         <Hero onIdea={(mode) => feedMe(mode)} onSave={() => setLinkForm({})} />
         <Ideas ideas={ideas} hidden={hidden} liked={liked} goals={prefs.goals} onOpen={(i) => setIdea({ idea: i, random: null })} />
+        <BuildDay ideas={ideas} goals={prefs.goals} ready={prefs.status !== 'loading'} onOpen={(i, portion) => setIdea({ idea: i, random: null, portion })} onGoals={() => setGoalsOpen(true)} />
         <Boosters boosters={boosters} />
         <Tastes prefs={prefs} token={token} setToken={setToken} onQuiz={() => setQuizOpen(true)} onGoals={() => setGoalsOpen(true)} />
         <Library
@@ -173,7 +176,8 @@ export default function App() {
 
       {idea && (
         <IdeaDialog
-          key={idea.idea.slug}
+          key={`${idea.idea.slug}-${idea.portion ?? 1}`}
+          startPortion={idea.portion}
           idea={idea.idea}
           boosters={boosters}
           prefs={prefs}
