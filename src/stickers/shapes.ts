@@ -307,6 +307,19 @@ export const STICKERS = {
     line('M66 92 L100 136 M88 72 L128 128 M116 64 L148 106', 'chocDark', 6),
     p('M138 150 Q164 132 182 148 Q164 166 138 150 Z', 'basil'),
   ],
+  // A snack pack: rolled turkey, cheese cubes and almonds in a tray.
+  pack: [
+    r(14, 40, 172, 128, 22, 'jar'),
+    r(26, 52, 70, 104, 14, 'white'),
+    r(104, 52, 70, 48, 14, 'white'),
+    r(104, 108, 70, 48, 14, 'white'),
+    e(61, 80, 26, 15, 'baconFat'), line('M42 80 Q61 70 80 80', 'bacon', 4),
+    e(61, 126, 26, 15, 'baconFat'), line('M42 126 Q61 116 80 126', 'bacon', 4),
+    r(112, 62, 22, 22, 4, 'cheese'), r(141, 64, 22, 22, 4, 'cheese', { transform: 'rotate(8 152 75)' }),
+    e(124, 132, 11, 7, 'almond', { transform: 'rotate(-20 124 132)' }),
+    e(152, 124, 11, 7, 'almond', { transform: 'rotate(15 152 124)' }),
+    e(150, 143, 11, 7, 'almond', { transform: 'rotate(-35 150 143)' }),
+  ],
   // A baking dish: baked ziti as drawn; mac and cheese recolors it.
   tray: [
     r(4, 80, 30, 20, 10, 'dish'), r(166, 80, 30, 20, 10, 'dish'),
