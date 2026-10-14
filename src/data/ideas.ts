@@ -1243,4 +1243,143 @@ export const IDEAS: Idea[] = [
       eat: 'Straight from the fridge, or 10 minutes out of the freezer.',
     },
   },
+  {
+    slug: 'turkey-protein-packs', title: 'Homemade turkey protein packs', category: 'snacks', sticker: 'pack',
+    kcal: 580, protein: 37, carbs: 13, fat: 44, time: '5 min',
+    blurb: 'Turkey, Colby Jack and almonds, like a P3 pack but about three and a half times the size. Pack a week’s worth on Sunday.',
+    ingredients: ['3 oz sliced oven-roasted turkey breast', '2 oz Colby Jack, cubed', '⅓ cup dry-roasted salted almonds'],
+    steps: ['Roll up the turkey slices.', 'Cut the cheese into cubes.', 'Pack the turkey, cheese and almonds in a container, with the almonds in their own corner so they stay crunchy.'],
+    boost: ['nuts', 'cheese', 'milk'],
+    clean: {
+      score: 4,
+      why: 'Lean turkey, cheese and almonds: lots of protein and good fats, nothing sweet. Deli turkey is still processed.',
+      cleaner: [
+        { to: 5, says: 'Turkey you roast yourself, and some vegetables', kcal: 85, protein: 13, carbs: 7, fat: 1,
+          swap: [
+            ['3 oz sliced oven-roasted turkey breast', '3 oz turkey breast you roasted yourself, sliced'],
+            ['Pack the turkey, cheese and almonds in a container, with the almonds in their own corner so they stay crunchy.', 'Pack the turkey, cheese, almonds and vegetables in a container, with the almonds in their own corner so they stay crunchy.'],
+          ],
+          add: ['Baby carrots and snap peas'],
+        },
+      ],
+      dirtier: [
+        { to: 3, says: 'Chips and honey mustard on the side', kcal: 285, protein: 2, carbs: 22, fat: 21,
+          add: ['1 oz potato chips', '2 tbsp honey mustard, for dipping'],
+        },
+      ],
+    },
+    ahead: {
+      keeps: 'fridge', makes: 5, unit: 'packs',
+      batch: {
+        ingredients: ['15 oz sliced oven-roasted turkey breast', '10 oz Colby Jack', '1⅔ cups dry-roasted salted almonds'],
+        steps: ['Roll all the turkey and cube all the cheese.', 'Split the turkey and cheese between five containers, with ⅓ cup almonds in a corner or a small bag in each.'],
+      },
+      lasts: 'Up to 4 days in the fridge.',
+      eat: 'Straight from the fridge, or within 2 hours of taking it out.',
+    },
+  },
+  {
+    slug: 'cottage-cheese-queso', title: 'Cottage cheese queso and chips', category: 'snacks', sticker: 'bowl',
+    palette: { rice: '#FFC72C', chicken: '#E8B46A', avocado: '#E8352B', corn: '#5BC25A', beans: '#E8B46A', bowl: '#FF5A36' },
+    kcal: 640, protein: 37, carbs: 48, fat: 34, time: '10 min',
+    blurb: 'Blended cottage cheese melts into a smooth, spicy queso with real cheddar stirred in. All the protein, none of the processed cheese.',
+    ingredients: ['1 cup cottage cheese', '1 oz shredded cheddar', '1 tsp taco seasoning', '2 tbsp salsa', 'Hot sauce, to taste', '2 oz tortilla chips'],
+    steps: ['Blend the cottage cheese until completely smooth.', 'Warm it gently in a small pot, stirring, then stir in the cheddar and taco seasoning until melted. Don’t let it boil.', 'Swirl in the salsa and hot sauce and eat it warm with the chips.'],
+    boost: ['cheese', 'avocado', 'milk'],
+    clean: {
+      score: 3,
+      why: 'Cottage cheese makes it high in protein, but tortilla chips are fried and salty.',
+      cleaner: [
+        { to: 4, says: 'Baked chips and pepper strips', kcal: -130, protein: -1, carbs: -7, fat: -11,
+          swap: [
+            ['2 oz tortilla chips', '1 oz baked tortilla chips and 1 bell pepper, in strips'],
+            ['Swirl in the salsa and hot sauce and eat it warm with the chips.', 'Swirl in the salsa and hot sauce and eat it warm with the chips and pepper strips.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 2, says: 'Chorizo and double the cheddar', kcal: 370, protein: 21, carbs: 1, fat: 31,
+          swap: [
+            ['1 oz shredded cheddar', '2 oz shredded cheddar'],
+            ['Warm it gently in a small pot, stirring, then stir in the cheddar and taco seasoning until melted. Don’t let it boil.', 'Brown the chorizo in a small pot, then add the cottage cheese and warm it gently, stirring in the cheddar and taco seasoning until melted. Don’t let it boil.'],
+          ],
+          add: ['2 oz Mexican chorizo'],
+        },
+      ],
+    },
+  },
+  {
+    slug: 'chocolate-pb-pudding', title: 'Chocolate peanut butter protein pudding', category: 'snacks', sticker: 'jar',
+    palette: { oats: '#7A4128', whip: '#C9813E', chip: '#4A2616', nut: '#C9813E', spoon: '#FFB4C6' },
+    kcal: 640, protein: 54, carbs: 34, fat: 34, time: '5 min',
+    blurb: 'Greek yogurt whipped with chocolate whey and cocoa until it eats like pudding, with a ribbon of peanut butter through it.',
+    ingredients: ['1 cup whole-milk Greek yogurt', '1 scoop chocolate whey', '1 tbsp cocoa powder', '2 tbsp whole milk', '2 tbsp peanut butter', '1 tbsp chocolate chips'],
+    steps: ['Whisk the yogurt, whey, cocoa and milk until smooth and thick, with no streaks of powder.', 'Swirl in the peanut butter so it stays in ribbons.', 'Top with the chocolate chips. Chill it for 20 minutes if you like it firmer.'],
+    boost: ['pb', 'nuts', 'granola'],
+    clean: {
+      score: 4,
+      why: 'Greek yogurt, whey and peanut butter: very high protein with good fats. The chocolate chips are the only sugar.',
+      cleaner: [
+        { to: 5, says: 'Cacao nibs instead of chocolate chips', kcal: -10, protein: 1, carbs: -6, fat: 0,
+          swap: [
+            ['1 tbsp chocolate chips', '1 tbsp cacao nibs'],
+            ['Top with the chocolate chips. Chill it for 20 minutes if you like it firmer.', 'Top with the cacao nibs. Chill it for 20 minutes if you like it firmer.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 3, says: 'Crushed Oreos and whipped cream on top', kcal: 155, protein: 1, carbs: 19, fat: 9,
+          swap: [
+            ['Top with the chocolate chips. Chill it for 20 minutes if you like it firmer.', 'Top with the chocolate chips, crushed Oreos and whipped cream.'],
+          ],
+          add: ['2 Oreos, crushed', 'Whipped cream'],
+        },
+      ],
+    },
+    ahead: {
+      keeps: 'fridge', makes: 4, unit: 'jars',
+      batch: {
+        ingredients: ['4 cups whole-milk Greek yogurt', '4 scoops chocolate whey', '¼ cup cocoa powder', '½ cup whole milk', '½ cup peanut butter'],
+        steps: ['Whisk the yogurt, whey, cocoa and milk in a big bowl until smooth.', 'Split between four jars and swirl 2 tbsp peanut butter into each.'],
+      },
+      lasts: 'Up to 4 days in the fridge.',
+      eat: 'Cold, with the chips on top.',
+      fresh: ['Chocolate chips'],
+    },
+  },
+  {
+    slug: 'pizza-quesadilla', title: 'Pizza quesadilla', category: 'snacks', sticker: 'pizza',
+    palette: { cheese: '#F2D29B', crust: '#E8B46A' },
+    kcal: 670, protein: 31, carbs: 42, fat: 41, time: '10 min',
+    blurb: 'A tortilla folded over mozzarella and pepperoni, crisped in butter and dunked in warm pizza sauce.',
+    ingredients: ['1 large flour tortilla', '¾ cup shredded mozzarella', '1 oz pepperoni', '1 tsp butter', 'A pinch of dried oregano', '¼ cup pizza sauce, warmed, for dipping'],
+    steps: ['Melt the butter in a pan over medium heat and lay in the tortilla.', 'Cover half of it with the mozzarella, pepperoni and oregano, then fold it over.', 'Cook 2 to 3 minutes a side until crisp and melted. Cut into wedges and dip in the pizza sauce.'],
+    boost: ['cheese', 'milk', 'oil'],
+    clean: {
+      score: 2,
+      why: 'Processed pepperoni and plenty of cheese in a white tortilla, crisped in butter.',
+      cleaner: [
+        { to: 3, says: 'Turkey pepperoni and part-skim mozzarella', kcal: -110, protein: 6, carbs: 0, fat: -15,
+          swap: [
+            ['1 oz pepperoni', '1 oz turkey pepperoni'],
+            ['¾ cup shredded mozzarella', '¾ cup shredded part-skim mozzarella'],
+          ],
+        },
+        { to: 4, says: 'A Greek yogurt flatbread instead of the tortilla', kcal: -25, protein: 6, carbs: -2, fat: -5,
+          swap: [
+            ['1 large flour tortilla', 'Flatbread: ⅓ cup self-rising flour and ⅓ cup nonfat Greek yogurt'],
+            ['Melt the butter in a pan over medium heat and lay in the tortilla.', 'Stir the flour and yogurt into a dough, roll it out thin and lay it in the pan with the melted butter over medium heat.'],
+          ],
+        },
+      ],
+      dirtier: [
+        { to: 1, says: 'Double pepperoni and garlic butter', kcal: 205, protein: 6, carbs: 0, fat: 20,
+          swap: [
+            ['1 oz pepperoni', '2 oz pepperoni'],
+            ['1 tsp butter', '1 tbsp garlic butter'],
+          ],
+        },
+      ],
+    },
+  },
 ]
